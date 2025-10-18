@@ -1,6 +1,6 @@
 import path from 'path'
 import fs from 'fs'
-import { app, ipcMain } from 'electron'
+import { app, ipcMain, shell } from 'electron'
 import serve from 'electron-serve'
 import Store from 'electron-store'
 import { createWindow } from './helpers'
@@ -40,12 +40,28 @@ app.on('window-all-closed', () => {
 ipcMain.on('message', async (event, arg) => {
   event.reply('message', `${arg} World!`)
 })
+ipcMain.on('open-new-window', async (event, { url, external }: { url: string; external: boolean }) => {
+  if (external) {
+    await shell.openExternal(url)
+    return
+  }
+
+  const newWindow = createWindow('external', {
+    width: 1200,
+    height: 800,
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+    },
+  })
+
+  await newWindow.loadURL(url)
+})
 
 // Password authentication IPC handlers
 let store: Store | null = null
 
 ipcMain.handle('check-config-exists', async () => {
-  try {//
+  try {
     const userDataPath = app.getPath('userData')
     const configPath = path.join(userDataPath, 'config.json')
     return fs.existsSync(configPath)
@@ -89,5 +105,13 @@ ipcMain.handle('verify-password', async (event, password: string) => {
   } catch (error) {
     console.error('Error verifying password:', error)
     return { success: false, error: 'Invalid password' }
+  }
+})
+
+ipcMain.handle('debug-info', async () => {
+  return {
+    userDataPath: app.getPath('userData'),
+    isDev: !isProd,
+    store: store.store
   }
 })
