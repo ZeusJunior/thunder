@@ -1,4 +1,4 @@
-import { IpcHandler } from '../main/preload'
+import { IpcHandler } from '../main/preload';
 
 declare global {
   interface Window {

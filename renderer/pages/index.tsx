@@ -1,7 +1,5 @@
-import React from 'react'
-import Head from 'next/head'
-import Link from 'next/link'
-import Image from 'next/image'
+import React from 'react';
+import Head from 'next/head';
 
 export default function HomePage() {
   return (
@@ -13,5 +11,5 @@ export default function HomePage() {
         Bleeeh!
       </div>
     </>
-  )
+  );
 }

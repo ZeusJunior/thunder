@@ -1,35 +1,35 @@
-import React, { useState, useEffect } from 'react'
-import type { AppProps } from 'next/app'
-import PasswordAuth from '../components/PasswordAuth'
-import Layout from '../components/Layout'
+import React, { useState, useEffect } from 'react';
+import type { AppProps } from 'next/app';
+import PasswordAuth from '../components/PasswordAuth';
+import Layout from '../components/Layout';
 
-import '../styles/globals.css'
+import '../styles/globals.css';
 
 function MyApp({ Component, pageProps }: AppProps) {
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [isFirstTime, setIsFirstTime] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isFirstTime, setIsFirstTime] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    checkAuthStatus()
-  }, [])
+    checkAuthStatus();
+  }, []);
 
   const checkAuthStatus = async () => {
     try {
       // Check if config file exists
-      const configExists = await window.ipc.invoke('check-config-exists')
-      setIsFirstTime(!configExists)
-      setIsLoading(false)
+      const configExists = await window.ipc.invoke('check-config-exists');
+      setIsFirstTime(!configExists);
+      setIsLoading(false);
     } catch (error) {
-      console.error('Error checking auth status:', error)
-      setIsFirstTime(true)
-      setIsLoading(false)
+      console.error('Error checking auth status:', error);
+      setIsFirstTime(true);
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleAuthenticated = () => {
-    setIsAuthenticated(true)
-  }
+    setIsAuthenticated(true);
+  };
 
   if (isLoading) {
     return (
@@ -39,7 +39,7 @@ function MyApp({ Component, pageProps }: AppProps) {
           <p className="mt-4 text-gray-600">Loading...</p>
         </div>
       </div>
-    )
+    );
   }
 
   if (!isAuthenticated) {
@@ -48,14 +48,14 @@ function MyApp({ Component, pageProps }: AppProps) {
         isFirstTime={isFirstTime} 
         onAuthenticated={handleAuthenticated}
       />
-    )
+    );
   }
 
   return (
     <Layout>
       <Component {...pageProps} />
     </Layout>
-  )
+  );
 }
 
-export default MyApp
+export default MyApp;

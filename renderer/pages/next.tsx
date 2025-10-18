@@ -1,16 +1,16 @@
-import React, { useEffect, useState } from 'react'
-import Head from 'next/head'
+import React, { useEffect, useState } from 'react';
+import Head from 'next/head';
 
 export default function NextPage() {
-  const [debugInfo, setDebugInfo] = useState<any>(null)
+  const [debugInfo, setDebugInfo] = useState<any>(null);
 
   useEffect(() => {
     const fetchInfo = async () => {
-      const info = await window.ipc.invoke('debug-info')
-      setDebugInfo(info)
-    }
-    fetchInfo()
-  }, [])
+      const info = await window.ipc.invoke('debug-info');
+      setDebugInfo(info);
+    };
+    fetchInfo();
+  }, []);
   
   return (
     <>
@@ -23,5 +23,5 @@ export default function NextPage() {
         </pre>
       </div>
     </>
-  )
+  );
 }
