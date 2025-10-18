@@ -1,6 +1,22 @@
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron'
 
-const handler = {
+interface ChannelReturnTypes {
+  'check-config-exists': boolean
+  'create-encrypted-config': { success: boolean; error?: string }
+  'verify-password': { success: boolean; error?: string }
+}
+
+type TypedHandler = {
+  send(channel: string, value: unknown): void
+  on(channel: string, callback: (...args: unknown[]) => void): () => void
+  invoke<K extends keyof ChannelReturnTypes>(
+    channel: K, 
+    ...args: unknown[]
+  ): Promise<ChannelReturnTypes[K]>
+  invoke(channel: string, ...args: unknown[]): Promise<unknown>
+}
+
+const handler: TypedHandler = {
   send(channel: string, value: unknown) {
     ipcRenderer.send(channel, value)
   },
@@ -13,8 +29,11 @@ const handler = {
       ipcRenderer.removeListener(channel, subscription)
     }
   },
+  invoke(channel: string, ...args: unknown[]) {
+    return ipcRenderer.invoke(channel, ...args)
+  },
 }
 
 contextBridge.exposeInMainWorld('ipc', handler)
 
-export type IpcHandler = typeof handler
+export type IpcHandler = TypedHandler
