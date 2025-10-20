@@ -4,6 +4,7 @@ import { app, ipcMain, shell } from 'electron';
 import serve from 'electron-serve';
 import Store from 'electron-store';
 import { createWindow } from './helpers';
+import { ThunderConfig } from './types';
 
 const isProd = process.env.NODE_ENV === 'production';
 
@@ -58,7 +59,7 @@ ipcMain.on('open-new-window', async (event, { url, external }: { url: string; ex
 });
 
 // Password authentication IPC handlers
-let store: Store | null = null;
+let store: Store<ThunderConfig> | null = null;
 
 ipcMain.handle('check-config-exists', async () => {
   try {
@@ -111,7 +112,64 @@ ipcMain.handle('verify-password', async (event, password: string) => {
 ipcMain.handle('debug-info', async () => {
   return {
     userDataPath: app.getPath('userData'),
-    isDev: !isProd,
-    store: store.store
+    isProd,
+    store: store?.store
   };
+});
+
+// Account management IPC handlers
+ipcMain.handle('get-accounts', async () => {
+  try {
+    if (!store) {
+      return { success: false, error: 'Not authenticated', accounts: [] };
+    }
+
+    const accounts = store.get('accounts', {});
+    return { success: true, accounts };
+  } catch (error) {
+    console.error('Error getting accounts:', error);
+    return { success: false, error: error.message, accounts: [] };
+  }
+});
+
+ipcMain.handle('get-current-account', async () => {
+  try {
+    if (!store) {
+      return { success: false, error: 'Not authenticated' };
+    }
+    
+    const currentAccountId = store.get('currentAccountId');
+    if (!currentAccountId) {
+      return { success: true, account: null };
+    }
+    
+    const accounts = store.get('accounts', {});
+    const currentAccount = accounts[currentAccountId];
+    
+    return { success: true, account: currentAccount || null };
+  } catch (error) {
+    console.error('Error getting current account:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+ipcMain.handle('set-current-account', async (event, accountId: string) => {
+  try {
+    if (!store) {
+      return { success: false, error: 'Not authenticated' };
+    }
+    
+    const accounts = store.get('accounts', {});
+    const account = accounts[accountId];
+
+    if (!account) {
+      return { success: false, error: 'Account not found' };
+    }
+    
+    store.set('currentAccountId', accountId);
+    return { success: true };
+  } catch (error) {
+    console.error('Error setting current account:', error);
+    return { success: false, error: error.message };
+  }
 });

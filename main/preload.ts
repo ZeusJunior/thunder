@@ -1,9 +1,14 @@
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
+import { Account, ThunderConfig } from './types';
 
 interface ChannelReturnTypes {
-  'check-config-exists': boolean
-  'create-encrypted-config': { success: boolean; error?: string }
-  'verify-password': { success: boolean; error?: string }
+  'check-config-exists': boolean;
+  'create-encrypted-config': { success: boolean; error?: string };
+  'verify-password': { success: boolean; error?: string };
+  'debug-info': Record<string, unknown>;
+  'get-accounts': { success: boolean; accounts: ThunderConfig['accounts']; error?: string };
+  'get-current-account': { success: boolean; account?: Account; error?: string };
+  'set-current-account': { success: boolean; error?: string };
 }
 
 type TypedHandler = {

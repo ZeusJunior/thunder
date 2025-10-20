@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import Head from 'next/head';
 
-export default function NextPage() {
-  const [debugInfo, setDebugInfo] = useState<any>(null);
+export default function DebugPage() {
+  const [debugInfo, setDebugInfo] = useState<Record<string, unknown>>(null);
 
   useEffect(() => {
     const fetchInfo = async () => {

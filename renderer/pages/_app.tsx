@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import type { AppProps } from 'next/app';
 import PasswordAuth from '../components/PasswordAuth';
+import AccountSelector from '../components/AccountSelector/AccountSelector';
 import Layout from '../components/Layout';
+import { AccountProvider } from '../context/AccountContext';
 
 import '../styles/globals.css';
 
@@ -9,10 +11,17 @@ function MyApp({ Component, pageProps }: AppProps) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isFirstTime, setIsFirstTime] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasAccountSelected, setHasAccountSelected] = useState(false);
 
   useEffect(() => {
     checkAuthStatus();
   }, []);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      checkCurrentAccount();
+    }
+  }, [isAuthenticated]);
 
   const checkAuthStatus = async () => {
     try {
@@ -27,8 +36,15 @@ function MyApp({ Component, pageProps }: AppProps) {
     }
   };
 
-  const handleAuthenticated = () => {
-    setIsAuthenticated(true);
+  const checkCurrentAccount = async () => {
+    try {
+      const result = await window.ipc.invoke('get-current-account');
+      if (result.success && result.account) {
+        setHasAccountSelected(true);
+      }
+    } catch (error) {
+      console.error('Error checking current account:', error);
+    }
   };
 
   if (isLoading) {
@@ -44,17 +60,23 @@ function MyApp({ Component, pageProps }: AppProps) {
 
   if (!isAuthenticated) {
     return (
-      <PasswordAuth 
-        isFirstTime={isFirstTime} 
-        onAuthenticated={handleAuthenticated}
+      <PasswordAuth
+        isFirstTime={isFirstTime}
+        onAuthenticated={() => setIsAuthenticated(true)}
       />
     );
   }
 
   return (
-    <Layout>
-      <Component {...pageProps} />
-    </Layout>
+    <AccountProvider>
+      {!hasAccountSelected
+        ? <AccountSelector onAccountSelected={() => setHasAccountSelected(true)} />
+        : (
+          <Layout>
+            <Component {...pageProps} />
+          </Layout>
+        )}
+    </AccountProvider>
   );
 }
 
