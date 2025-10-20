@@ -1,8 +1,23 @@
 import Image from 'next/image';
+import { useEffect, useState } from 'react';
 import { useAccount } from '../../context/AccountContext';
 
 export default function AccountList({ onSelect }: { onSelect: (accountId: string) => void }) {
   const { accounts, isLoading } = useAccount();
+  const [filteredAccounts, setFilteredAccounts] = useState(Object.values(accounts || {}));
+  const [search, setSearch] = useState('');
+
+  useEffect(() => {
+    const results = Object.values(accounts).filter((account) => {
+      if (!search) return true;
+      const query = search.toLowerCase();
+      return (
+        account.username.toLowerCase().includes(query) ||
+        account.id64.toLowerCase().includes(query)
+      );
+    });
+    setFilteredAccounts(results);
+  }, [search, accounts]);
 
   if (isLoading) {
     return (
@@ -15,46 +30,87 @@ export default function AccountList({ onSelect }: { onSelect: (accountId: string
     );
   }
 
+  const showSearch = filteredAccounts.length >= 5;
+
   return (
-    <div className="space-y-2">
-      {Object.entries(accounts).map(([id, account]) => (
-        <button
-          key={id}
-          onClick={() => onSelect(id)}
-          className="w-full text-left p-4 border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-        >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              {account.avatarUrl ? (
-                <Image
-                  src={account.avatarUrl}
-                  alt={`${account.username} avatar`}
-                  width={40}
-                  height={40}
-                  className="rounded-full mr-4 object-cover"
-                />
-              ) : (
-                <div className="w-10 h-10 rounded-full mr-4 bg-gray-200 flex items-center justify-center text-sm text-gray-600">
-                  {account.username?.[0]?.toUpperCase() ?? '?'}
-                </div>
-              )}
-              <div>
-                <h3 className="text-sm font-medium text-gray-900">
-                  {account.username}
-                </h3>
-                <p className="text-sm text-gray-500">
-                  <span className="font-medium">ID:</span> {account.id64}
-                </p>
-              </div>
-            </div>
-            <div className="text-right">
-              <p className="text-xs text-gray-400">
-                Added {new Date(account.meta.createdAt).toLocaleDateString()}
-              </p>
-            </div>
+    <div className="space-y-4">
+
+      {showSearch && (
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <svg
+              className="h-5 w-5 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
           </div>
-        </button>
-      ))}
+          <input
+            type="text"
+            placeholder="Search accounts..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+          />
+        </div>
+      )}
+
+      {/* Accounts List */}
+      <div className="space-y-2">
+        {filteredAccounts.length > 0 ? (
+          filteredAccounts.map((account) => (
+            <button
+              key={account.id}
+              onClick={() => onSelect(account.id)}
+              className="w-full text-left p-4 border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  {account.avatarUrl ? (
+                    <Image
+                      src={account.avatarUrl}
+                      alt={`${account.username} avatar`}
+                      width={40}
+                      height={40}
+                      className="rounded-full mr-4 object-cover"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full mr-4 bg-gray-200 flex items-center justify-center text-sm text-gray-600">
+                      {account.username?.[0]?.toUpperCase() ?? '?'}
+                    </div>
+                  )}
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-900">
+                      {account.username}
+                    </h3>
+                    <p className="text-sm text-gray-500">
+                      <span className="font-medium">ID:</span> {account.id64}
+                    </p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs text-gray-400">
+                    Added {new Date(account.meta.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+              </div>
+            </button>
+          ))
+        ) : (
+          <div className="text-center py-8">
+            <p className="text-gray-500">
+              {search ? 'No accounts found matching your search.' : 'No accounts available.'}
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

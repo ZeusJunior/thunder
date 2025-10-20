@@ -121,8 +121,35 @@ ipcMain.handle('debug-info', async () => {
 ipcMain.handle('get-accounts', async () => {
   try {
     if (!store) {
-      return { success: false, error: 'Not authenticated', accounts: [] };
+      return { success: false, error: 'Not authenticated', accounts: {} };
     }
+    
+	 // todo: delete
+    store.set('accounts', {
+      '123': {
+        id: '123',
+        id64: '76561198000000000',
+        username: 'example_user',
+        sharedSecret: 'EXAMPLESHAREDSECRET==',
+        identitySecret: 'EXAMPLEIDENTITYSECRET==',
+        avatarUrl: 'https://avatars.fastly.steamstatic.com/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg',
+        meta: {
+          createdAt: new Date().toISOString()
+        }
+      },
+      '234': {
+        id: '234',
+		    id64: '76561198000000000',
+        username: 'example_user2',
+        sharedSecret: 'EXAMPLESHAREDSECRET==',
+        identitySecret: 'EXAMPLEIDENTITYSECRET==',
+		    avatarUrl: 'https://avatars.fastly.steamstatic.com/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg',
+        meta: {
+          createdAt: new Date().toISOString()
+        }
+      }
+	 });
+	 store.delete('currentAccountId');
 
     const accounts = store.get('accounts', {});
     return { success: true, accounts };
