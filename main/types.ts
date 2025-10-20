@@ -17,5 +17,4 @@ export interface Account {
   };
 }
 
-// Todo: Prevent exporting full Account in contexts where not needed
-export type LimitedAccountInfo = Pick<Account, 'id' | 'id64' | 'username' | 'avatarUrl' | 'meta'>;
+export type LimitedAccount = Pick<Account, 'id' | 'id64' | 'username' | 'avatarUrl' | 'meta'>;

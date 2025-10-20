@@ -4,7 +4,7 @@ import { app, ipcMain, shell } from 'electron';
 import serve from 'electron-serve';
 import Store from 'electron-store';
 import { createWindow } from './helpers';
-import { ThunderConfig } from './types';
+import { LimitedAccount, ThunderConfig } from './types';
 
 const isProd = process.env.NODE_ENV === 'production';
 
@@ -152,7 +152,20 @@ ipcMain.handle('get-accounts', async () => {
 	 store.delete('currentAccountId');
 
     const accounts = store.get('accounts', {});
-    return { success: true, accounts };
+
+    // Return limited account info only
+    const limitedAccounts: Record<string, LimitedAccount> = {};
+    for (const [id, account] of Object.entries(accounts)) {
+      limitedAccounts[id] = {
+        id: account.id,
+        id64: account.id64,
+        username: account.username,
+        avatarUrl: account.avatarUrl,
+        meta: account.meta,
+      };
+    }
+
+    return { success: true, accounts: limitedAccounts };
   } catch (error) {
     console.error('Error getting accounts:', error);
     return { success: false, error: error.message, accounts: [] };
@@ -172,8 +185,14 @@ ipcMain.handle('get-current-account', async () => {
     
     const accounts = store.get('accounts', {});
     const currentAccount = accounts[currentAccountId];
-    
-    return { success: true, account: currentAccount || null };
+    const limitedAccount: LimitedAccount = {
+      id: currentAccount.id,
+      id64: currentAccount.id64,
+      username: currentAccount.username,
+      avatarUrl: currentAccount.avatarUrl,
+      meta: currentAccount.meta
+    };
+    return { success: true, account: limitedAccount || null };
   } catch (error) {
     console.error('Error getting current account:', error);
     return { success: false, error: error.message };
