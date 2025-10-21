@@ -25,7 +25,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
 
         const currentResult = await window.ipc.invoke('get-current-account');
         if (currentResult.success && currentResult.account) {
-          const accountExists = result.accounts[currentResult.account.id];
+          const accountExists = result.accounts[currentResult.account.id64];
           if (accountExists) {
             setCurrentAccountState(currentResult.account);
           }

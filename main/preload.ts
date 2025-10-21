@@ -6,9 +6,13 @@ interface ChannelReturnTypes {
   'create-encrypted-config': { success: boolean; error?: string };
   'verify-password': { success: boolean; error?: string };
   'debug-info': Record<string, unknown>;
+  
   'get-accounts': { success: boolean; accounts: Record<string, LimitedAccount>; error?: string };
   'get-current-account': { success: boolean; account?: LimitedAccount; error?: string };
   'set-current-account': { success: boolean; error?: string };
+
+  'add-authenticator-login': { success: boolean; error?: string, codeRequired?: boolean, steamId?: string, recoveryCode?: string };
+  'add-authenticator-finalize': { success: boolean; error?: string, recoveryCode?: string };
 }
 
 type TypedHandler = {

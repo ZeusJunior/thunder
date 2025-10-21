@@ -67,8 +67,8 @@ export default function AccountList({ onSelect }: { onSelect: (accountId: string
         {filteredAccounts.length > 0 ? (
           filteredAccounts.map((account) => (
             <button
-              key={account.id}
-              onClick={() => onSelect(account.id)}
+              key={account.id64}
+              onClick={() => onSelect(account.id64)}
               className="w-full text-left p-4 border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
             >
               <div className="flex items-center justify-between">

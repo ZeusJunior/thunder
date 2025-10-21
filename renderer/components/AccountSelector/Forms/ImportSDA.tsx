@@ -11,14 +11,14 @@ export default function ImportSDA({ onSubmit, onCancel }: NewAuthenticatorProps)
           Import from SDA maFile
         </h3>
         <p className="text-sm text-gray-600">
-          Import an existing authenticator from Steam Desktop Authenticator maFile.
+          Import an existing authenticator from a Steam Desktop Authenticator maFile.
         </p>
       </div>
 
       <form onSubmit={onSubmit} className="space-y-4">
         <div>
           <label htmlFor="maFile" className="block text-sm font-medium text-gray-700">
-          Select maFile *
+          Select maFile
           </label>
           <input
             type="file"

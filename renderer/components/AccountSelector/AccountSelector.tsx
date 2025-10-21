@@ -42,19 +42,6 @@ export default function AccountSelector({ onAccountSelected = () => {} }: Accoun
     }
   }, [onAccountSelected, setCurrentAccount]);
 
-  const handleNewAuthenticator = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setError('');
-
-    try {
-      // TODO: Implement new authenticator logic
-      setError('New authenticator is not yet implemented');
-    } catch (error) {
-      console.error('Error adding authenticator:', error);
-      setError('Failed to add authenticator');
-    }
-  };
-
   const handleImportSDA = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -112,7 +99,10 @@ export default function AccountSelector({ onAccountSelected = () => {} }: Accoun
           ) : (
             <div className="space-y-4">
               {addAccountMode === 'new' && (
-                <NewAuthenticator onSubmit={handleNewAuthenticator} onCancel={() => setAddAccountMode(null)} />
+                <NewAuthenticator
+                  onSuccess={handleSelectAccount}
+                  onCancel={() => setAddAccountMode(null)}
+                />
               )}
 
               {addAccountMode === 'sda' && (
