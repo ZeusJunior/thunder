@@ -14,6 +14,7 @@ export interface Account {
   avatarUrl?: string;
 
   // Steam login stuff
+  refreshToken?: string;
   cookies?: string[];
 
   meta: {

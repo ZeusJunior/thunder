@@ -16,13 +16,14 @@ export default function NewAuthenticator({ onSuccess, onCancel }: NewAuthenticat
   const [error, setError] = useState('');
   const [steamId, setSteamId] = useState('');
   const [recoveryCode, setRecoveryCode] = useState('');
+  const [phoneNumberHint, setPhoneNumberHint] = useState('');
 
   const getStepContent = () => {
     switch (step) {
     case 0:
-      return <LoginStep onCancel={onCancel} setError={setError} setSteamId={setSteamId} setRecoveryCode={setRecoveryCode} nextStep={() => setStep(1)} />;
+      return <LoginStep onCancel={onCancel} setError={setError} setSteamId={setSteamId} setRecoveryCode={setRecoveryCode} setPhoneNumberHint={setPhoneNumberHint} nextStep={() => setStep(1)} />;
     case 1:
-      return <FinalizeStep onCancel={onCancel} setError={setError} nextStep={() => setStep(2)} steamId={steamId} />;
+      return <FinalizeStep onCancel={onCancel} setError={setError} nextStep={() => setStep(2)} steamId={steamId} phoneNumberHint={phoneNumberHint} />;
     case 2:
       return <CheckRecoveryCodeStep setError={setError} recoveryCode={recoveryCode} nextStep={() => setStep(3)} />;
     case 3:
@@ -54,7 +55,16 @@ export default function NewAuthenticator({ onSuccess, onCancel }: NewAuthenticat
   );
 }
 
-function LoginStep({ onCancel, setError, setSteamId, setRecoveryCode, nextStep }: { onCancel: () => void, setError: (error: string) => void, setSteamId: (id: string) => void, setRecoveryCode: (code: string) => void, nextStep: () => void }) {
+interface LoginStepProps {
+  onCancel: () => void;
+  setError: (error: string) => void;
+  setSteamId: (id: string) => void;
+  setRecoveryCode: (code: string) => void;
+  setPhoneNumberHint: (hint: string) => void;
+  nextStep: () => void;
+}
+
+function LoginStep({ onCancel, setError, setSteamId, setRecoveryCode, setPhoneNumberHint, nextStep }: LoginStepProps) {
   const [accountName, setAccountName] = useState('');
   const [password, setPassword] = useState('');
   const [authCode, setAuthCode] = useState<string | undefined>();
@@ -86,6 +96,7 @@ function LoginStep({ onCancel, setError, setSteamId, setRecoveryCode, nextStep }
       // Successful login, 2FA process started
       setSteamId(result.steamId);
       setRecoveryCode(result.recoveryCode);
+      setPhoneNumberHint(result.phoneNumberHint);
       nextStep();
     } catch (error) {
       console.error('Error adding authenticator:', error);
@@ -170,7 +181,15 @@ function LoginStep({ onCancel, setError, setSteamId, setRecoveryCode, nextStep }
   );
 }
 
-function FinalizeStep({ onCancel, setError, nextStep, steamId }: { onCancel: () => void, setError: (error: string) => void, nextStep: () => void, steamId: string }) {
+interface FinalizeStepProps {
+  onCancel: () => void;
+  setError: (error: string) => void;
+  nextStep: () => void;
+  steamId: string;
+  phoneNumberHint: string;
+}
+
+function FinalizeStep({ onCancel, setError, nextStep, steamId, phoneNumberHint }: FinalizeStepProps) {
   const [activationCode, setActivationCode] = useState('');
 
   const handleFinalize = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -211,7 +230,7 @@ function FinalizeStep({ onCancel, setError, nextStep, steamId }: { onCancel: () 
       </div>
       <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
         <p className="text-sm text-blue-700">
-          <strong>Note:</strong> If you have a phone number linked with your account, then you&apos;ll be sent an SMS with an activation code. Otherwise, you&apos;ll receive the activation code by email.
+          <strong>Note:</strong> {phoneNumberHint ? `Please enter the activation code sent to your phone number ending in ${phoneNumberHint}` : 'Please enter the activation code sent to your email.'}
         </p>
       </div>
 
@@ -234,7 +253,13 @@ function FinalizeStep({ onCancel, setError, nextStep, steamId }: { onCancel: () 
   );
 }
 
-function CheckRecoveryCodeStep({ setError, recoveryCode, nextStep }: { setError: (error: string) => void, recoveryCode: string, nextStep: () => void }) {
+interface CheckRecoveryCodeStepProps {
+  setError: (error: string) => void;
+  recoveryCode: string;
+  nextStep: () => void;
+}
+
+function CheckRecoveryCodeStep({ setError, recoveryCode, nextStep }: CheckRecoveryCodeStepProps) {
   // Make sure they've saved the recovery code, ask for them to re-enter it
   const [enteredCode, setEnteredCode] = useState('');
 
@@ -278,7 +303,11 @@ function CheckRecoveryCodeStep({ setError, recoveryCode, nextStep }: { setError:
   );
 }
 
-function CongratulationsStep({ onContinue }: { onContinue: () => void }) {
+interface CongratulationsStepProps {
+  onContinue: () => void;
+}
+
+function CongratulationsStep({ onContinue }: CongratulationsStepProps) {
   return (
     <div className="text-center">
       <h2 className="text-2xl font-bold mb-4">Authenticator Added!</h2>

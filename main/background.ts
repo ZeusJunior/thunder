@@ -5,7 +5,7 @@ import serve from 'electron-serve';
 import Store from 'electron-store';
 import { createWindow } from './helpers';
 import { LimitedAccount, ThunderConfig } from './types';
-import SteamCommunity from 'steamcommunity';
+import SteamUser from 'steam-user';
 
 const isProd = process.env.NODE_ENV === 'production';
 
@@ -236,39 +236,46 @@ ipcMain.handle('add-authenticator-login', async (
       return { success: false, error: 'Not authenticated' };
     }
 
-    const details = { accountName, password, authCode, disableMobile: false };
-    const community = new SteamCommunity();
+    const details = { accountName, password, authCode };
+    const user = new SteamUser();
 
     const result = await new Promise((resolve) => {
-      community.login(details, (err, _sessionID, cookies) => {
-        if (err) {
-          if (err.message === 'SteamGuard') {
-            return resolve({ success: false, error: `Please input the Steam Guard code sent to your email ending with ${err.emaildomain}`, codeRequired: true });
-          }
-          if (err.message === 'InvalidPassword') {
-            return resolve({ success: false, error: 'Your password is invalid, please double check your login information.' });
-          }
-          if (err.message === 'SteamGuardMobile') {
-            return resolve({ success: false, error: 'You already have an authenticator set up on this account.' });
-          }
-
-          return resolve({ success: false, error: err.message });
+      let cookies = [];
+      let refreshToken = '';
+      user.logOn(details);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      user.once('steamGuard', function (domain, _cb) {
+        return resolve({ success: false, error: `Please input the Steam Guard code sent to your email ending with ${domain}`, codeRequired: true });
+      });
+      user.once('error', function (err) {
+        if (err.eresult === SteamUser.EResult.InvalidPassword) {
+          return resolve({ success: false, error: 'Your password is invalid, please double check your login information.' });
+        }
+        if (err.eresult === SteamUser.EResult.TwoFactorCodeMismatch) {
+          return resolve({ success: false, error: 'The Steam Guard code you entered is incorrect. Please try again.', codeRequired: true });
         }
 
+        return resolve({ success: false, error: err.message });
+      });
+      user.once('webSession', function (_sessionID, steamcookies) {
+        cookies = steamcookies || [];
+      });
+      user.once('refreshToken', async (token) => {
+        refreshToken = token;
+      });
+      user.once('loggedOn', function () {
         const accounts = store.get('accounts', {});
-        const steamId = community.steamID.getSteamID64();
-        console.log('Steam login successful for ', steamId);
+        const steamId = user.steamID.getSteamID64();
+        console.log('Steam login successful for', steamId);
         if (accounts[steamId]) {
           return resolve({ success: false, error: 'This account has already been added.' });
         }
 
-        community.enableTwoFactor((err, response) => {
-          if (err) {
+        user.enableTwoFactor((err, response) => {
+          if (err || response?.status !== 1) {
             console.error('Error enabling 2FA:', err);
             return resolve({ success: false, error: err.message });
           }
-
-          console.log('entire response', JSON.stringify(response, null, 2));
 
           accounts[steamId] = {
             id64: steamId,
@@ -276,6 +283,7 @@ ipcMain.handle('add-authenticator-login', async (
             sharedSecret: response.shared_secret,
             identitySecret: response.identity_secret,
             recoveryCode: response.revocation_code,
+            refreshToken,
             avatarUrl: 'https://avatars.fastly.steamstatic.com/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg',
             meta: {
               setupComplete: false,
@@ -285,7 +293,7 @@ ipcMain.handle('add-authenticator-login', async (
           };
 
           store.set('accounts', accounts);
-          return resolve({ success: true, steamId, recoveryCode: response.revocation_code });
+          return resolve({ success: true, steamId, recoveryCode: response.revocation_code, phoneNumberHint: response.phone_number_hint });
         });
       });
     });
@@ -313,31 +321,36 @@ ipcMain.handle('add-authenticator-finalize', async (
       return { success: false, error: 'Account not found' };
     }
 
-    const community = new SteamCommunity();
-    community.setCookies(account.cookies);
+    const user = new SteamUser();
 
     // Finalize the 2FA setup
     const result = await new Promise((resolve) => {
-      community.finalizeTwoFactor(account.sharedSecret, activationCode, (err) => {
-        if (err) {
-          console.error('Error finalizing 2FA:', err);
-          return resolve({ success: false, error: err.message });
-        }
+      user.logOn({
+        refreshToken: account.refreshToken,
+        steamID: steamId,
+      });
+      user.once('loggedOn', function () {
+        user.finalizeTwoFactor(account.sharedSecret, activationCode, (err) => {
+          if (err) {
+            console.error('Error finalizing 2FA:', err);
+            return resolve({ success: false, error: err.message });
+          }
 
-        console.log('2FA setup finalized successfully for ', steamId);
+          console.log('2FA setup finalized successfully for ', steamId);
         
-        store.set('accounts', {
-          ...accounts,
-          [steamId]: {
-            ...account,
-            meta: {
-              ...account.meta,
-              setupComplete: true,
+          store.set('accounts', {
+            ...accounts,
+            [steamId]: {
+              ...account,
+              meta: {
+                ...account.meta,
+                setupComplete: true,
+              },
             },
-          },
-        });
+          });
 
-        return resolve({ success: true });
+          return resolve({ success: true });
+        });
       });
     });
 
