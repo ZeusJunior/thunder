@@ -13,7 +13,7 @@ interface AccountSelectorProps {
 export default function AccountSelector({ onAccountSelected = () => {} }: AccountSelectorProps) {
   const { accounts, isLoading, setCurrentAccount } = useAccount();
   const [isFirstAccount, setIsFirstAccount] = useState(true);
-  const [addAccountMode, setAddAccountMode] = useState<'new' | 'sda' | 'secrets' | null>(null);
+  const [addAccountMode, setAddAccountMode] = useState<'new' | 'sda' | null>(null);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -22,7 +22,7 @@ export default function AccountSelector({ onAccountSelected = () => {} }: Accoun
     }
   }, [accounts]);
 
-  const handleSetAccountMode = (mode: 'new' | 'sda' | 'secrets' | null) => {
+  const handleSetAccountMode = (mode: 'new' | 'sda' | null) => {
     setAddAccountMode(mode);
     setError('');
   };

@@ -16,7 +16,8 @@
     "electron-serve": "^3.0.0",
     "electron-store": "^8.2.0",
     "steam-user": "^5.2.3",
-    "steamcommunity": "^3.49.0"
+    "steamcommunity": "^3.49.0",
+    "steamid": "^2.1.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",

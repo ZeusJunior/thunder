@@ -1,11 +1,13 @@
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { useAccount } from '../../context/AccountContext';
+import ReloadIcon from '../Icons/Reload';
 
 export default function AccountList({ onSelect }: { onSelect: (accountId: string) => void }) {
-  const { accounts, isLoading } = useAccount();
+  const { accounts, isLoading, loadAccounts } = useAccount();
   const [filteredAccounts, setFilteredAccounts] = useState(Object.values(accounts || {}));
   const [search, setSearch] = useState('');
+  const [error, setError] = useState('');
 
   useEffect(() => {
     const results = Object.values(accounts).filter((account) => {
@@ -19,6 +21,15 @@ export default function AccountList({ onSelect }: { onSelect: (accountId: string
     });
     setFilteredAccounts(results);
   }, [search, accounts]);
+
+  const refreshProfile = async (accountId: string) => {
+    const result = await window.ipc.invoke('refresh-profile', accountId);
+    if (result.success) {
+      return await loadAccounts();
+    }
+
+    setError(result.error || 'Failed to refresh profile');
+  };
 
   if (isLoading) {
     return (
@@ -63,6 +74,12 @@ export default function AccountList({ onSelect }: { onSelect: (accountId: string
         </div>
       )}
 
+      {error && (
+        <div className="mb-4 bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md">
+          {error}
+        </div>
+      )}
+
       {/* Accounts List */}
       <div className="space-y-2">
         {filteredAccounts.length > 0 ? (
@@ -99,7 +116,17 @@ export default function AccountList({ onSelect }: { onSelect: (accountId: string
                     </p>
                   </div>
                 </div>
-                <div className="text-right">
+                <div className="text-right flex flex-col items-end space-y-1">
+                  <div
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      refreshProfile(account.id64);
+                    }}
+                    className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 rounded-md transition-colors cursor-pointer"
+                    title="Refresh profile"
+                  >
+                    <ReloadIcon className="w-5 h-5" />
+                  </div>
                   <p className="text-xs text-gray-400">
                     Added {new Date(account.meta.createdAt).toLocaleDateString()}
                   </p>

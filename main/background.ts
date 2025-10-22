@@ -6,6 +6,7 @@ import Store from 'electron-store';
 import { createWindow } from './helpers';
 import { LimitedAccount, SteamTwoFactorResponse, ThunderConfig } from './types';
 import SteamCommunity from 'steamcommunity';
+import SteamID from 'steamid';
 const community = new SteamCommunity();
 // TODO: Fetch refresh token using SteamUser next time session expires
 
@@ -117,6 +118,39 @@ ipcMain.handle('debug-info', async () => {
     isProd,
     store: store?.store
   };
+});
+
+ipcMain.handle('refresh-profile', async (event, accountId: string) => {
+  try {
+    if (!store) {
+      return { success: false, error: 'Not authenticated' };
+    }
+
+    const accounts = store.get('accounts', {});
+    const account = accounts[accountId];
+
+    if (!account) {
+      return { success: false, error: 'Account not found' };
+    }
+
+    return new Promise((resolve) => {
+      community.getSteamUser(new SteamID(accountId), (err, communityUser) => {
+        if (err) {
+          console.error('Error fetching profile info:', err);
+          return resolve({ success: false, error: err.message });
+        }
+
+        // Update account info
+        store.set(`accounts.${accountId}.personaName`, communityUser.name);
+        store.set(`accounts.${accountId}.avatarUrl`, `https://avatars.fastly.steamstatic.com/${communityUser.avatarHash}_full.jpg`);
+
+        return resolve({ success: true });
+      });
+    });
+  } catch (error) {
+    console.error('Error refreshing profile:', error);
+    return { success: false, error: error.message };
+  }
 });
 
 // Account management IPC handlers
@@ -237,7 +271,7 @@ ipcMain.handle('add-authenticator-login', async (
           return resolve({ success: false, error: 'This account has already been added.' });
         }
 
-        community.getSteamUser(steamId, (err, communityUser) => {
+        community.getSteamUser(new SteamID(steamId), (err, communityUser) => {
           if (err) {
             // It's possible the profile couldn't be found if the account hasn't been set up yet
             // That's fine, ignore that error
