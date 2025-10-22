@@ -1,3 +1,5 @@
+import SteamUser from 'steam-user';
+
 export interface ThunderConfig {
   initialized: boolean;
   createdAt: string;
@@ -16,6 +18,9 @@ export interface Account {
   // Steam login stuff
   refreshToken?: string;
   cookies?: string[];
+  // The entire steam two factor response, we're supposed to store it but we only
+  // really use sharedSecret and identitySecret from it
+  twoFactorResponse?: SteamTwoFactorResponse;
 
   meta: {
     setupComplete: boolean;
@@ -24,3 +29,9 @@ export interface Account {
 }
 
 export type LimitedAccount = Pick<Account, 'id64' | 'username' | 'avatarUrl' | 'meta'>;
+
+export interface SteamTwoFactorResponse extends SteamUser.TwoFactorResponse {
+  serial_number?: string;
+  secret_1?: string;
+  confirm_type?: number;
+}

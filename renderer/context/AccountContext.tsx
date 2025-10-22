@@ -44,6 +44,9 @@ export function AccountProvider({ children }: { children: ReactNode }) {
         setCurrentAccountState(null);
         return true;
       }
+
+      await loadAccounts();
+
       if (accountId && accounts && accounts[accountId]) {
         const result = await window.ipc.invoke('set-current-account', accountId);
         if (result.success) {
