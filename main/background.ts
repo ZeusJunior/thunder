@@ -133,7 +133,8 @@ ipcMain.handle('get-accounts', async () => {
     for (const [id, account] of Object.entries(accounts)) {
       limitedAccounts[id] = {
         id64: account.id64,
-        username: account.username,
+        personaName: account.personaName,
+        accountName: account.accountName,
         avatarUrl: account.avatarUrl,
         meta: account.meta,
       };
@@ -161,7 +162,8 @@ ipcMain.handle('get-current-account', async () => {
     const currentAccount = accounts[currentAccountId];
     const limitedAccount: LimitedAccount = {
       id64: currentAccount.id64,
-      username: currentAccount.username,
+      personaName: currentAccount.personaName,
+      accountName: currentAccount.accountName,
       avatarUrl: currentAccount.avatarUrl,
       meta: currentAccount.meta
     };
@@ -253,7 +255,8 @@ ipcMain.handle('add-authenticator-login', async (
 
             accounts[steamId] = {
               id64: steamId,
-              username: accountName,
+              personaName: communityUser?.name || accountName,
+              accountName,
               sharedSecret: response.shared_secret,
               identitySecret: response.identity_secret,
               recoveryCode: response.revocation_code,

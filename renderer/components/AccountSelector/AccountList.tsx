@@ -12,7 +12,8 @@ export default function AccountList({ onSelect }: { onSelect: (accountId: string
       if (!search) return true;
       const query = search.toLowerCase();
       return (
-        account.username.toLowerCase().includes(query) ||
+        account.personaName.toLowerCase().includes(query) ||
+        account.accountName.toLowerCase().includes(query) ||
         account.id64.toLowerCase().includes(query)
       );
     });
@@ -76,22 +77,25 @@ export default function AccountList({ onSelect }: { onSelect: (accountId: string
                   {account.avatarUrl ? (
                     <Image
                       src={account.avatarUrl}
-                      alt={`${account.username} avatar`}
+                      alt={`${account.personaName} avatar`}
                       width={40}
                       height={40}
                       className="rounded-full mr-4 object-cover"
                     />
                   ) : (
                     <div className="w-10 h-10 rounded-full mr-4 bg-gray-200 flex items-center justify-center text-sm text-gray-600">
-                      {account.username?.[0]?.toUpperCase() ?? '?'}
+                      {account.personaName?.[0]?.toUpperCase() ?? '?'}
                     </div>
                   )}
                   <div>
                     <h3 className="text-sm font-medium text-gray-900">
-                      {account.username}
+                      {account.personaName}
                     </h3>
                     <p className="text-sm text-gray-500">
-                      <span className="font-medium">ID:</span> {account.id64}
+                      <span className="font-medium">Account:</span> {account.accountName}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      <span className="font-medium">SteamID:</span> {account.id64}
                     </p>
                   </div>
                 </div>

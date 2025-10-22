@@ -32,7 +32,7 @@ export default function Sidebar() {
                   className={'w-8 h-8 rounded-full'}
                   width={32}
                   height={32}
-                  alt={`${currentAccount.username} avatar`}
+                  alt={`${currentAccount.personaName} avatar`}
                 />
                 <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
                   <ArrowLRIcon className="w-4 h-4 text-white" />
@@ -40,7 +40,7 @@ export default function Sidebar() {
               </div>
 
               <div className="flex-1 min-w-0">
-                <div className="text-sm font-medium truncate" title={currentAccount.username}>{currentAccount.username}</div>
+                <div className="text-sm font-medium truncate" title={currentAccount.personaName}>{currentAccount.personaName}</div>
                 <div className="text-xs text-gray-500 truncate" title={currentAccount.id64}>{currentAccount.id64}</div>
               </div>
             </Link>

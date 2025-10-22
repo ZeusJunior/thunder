@@ -9,7 +9,8 @@ export interface ThunderConfig {
 
 export interface Account {
   id64: string;
-  username: string;
+  personaName: string;
+  accountName: string;
   sharedSecret?: string;
   identitySecret?: string;
   recoveryCode?: string;
@@ -28,7 +29,7 @@ export interface Account {
   };
 }
 
-export type LimitedAccount = Pick<Account, 'id64' | 'username' | 'avatarUrl' | 'meta'>;
+export type LimitedAccount = Pick<Account, 'id64' | 'accountName' | 'personaName' | 'avatarUrl' | 'meta'>;
 
 export interface SteamTwoFactorResponse extends SteamUser.TwoFactorResponse {
   serial_number?: string;

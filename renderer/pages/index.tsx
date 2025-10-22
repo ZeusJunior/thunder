@@ -28,7 +28,7 @@ export default function HomePage() {
       </Head>
       <div className="p-6">
         <h1 className="text-2xl font-bold text-gray-900">
-         Welcome to Thunder Authenticator {currentAccount ? `- ${currentAccount.username}` : ''}
+         Welcome to Thunder Authenticator {currentAccount ? `- ${currentAccount.personaName}` : ''}
         </h1>
       </div>
     </>
