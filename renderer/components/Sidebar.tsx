@@ -19,8 +19,32 @@ export default function Sidebar() {
         <h1 className="text-xl font-semibold">Thunder</h1>
       </div>
 
+      {/* Navigation */}
+      <nav className="flex-1 p-1">
+        <ul className="space-y-1">
+          <li>
+            <Link
+              href="/"
+              className="flex items-center px-3 py-2 rounded-lg hover:bg-gray-800 transition-colors duration-200"
+            >
+              <HomeIcon className="w-5 h-5 mr-2" />
+              Home
+            </Link>
+          </li>
+        </ul>
+      </nav>
+
+      <div className="p-2">
+        <Link
+          href="/debug"
+          className="flex items-center px-3 py-2 rounded-lg hover:bg-gray-800 transition-colors duration-200"
+        >
+					Debug Info
+        </Link>
+      </div>
+
       {currentAccount && (
-        <div className="p-3 border-b border-gray-700">
+        <div className="p-1 border-t border-gray-700">
           <div className="relative">
             <Link
               href="/change-account"
@@ -47,30 +71,6 @@ export default function Sidebar() {
           </div>
         </div>
       )}
-
-      {/* Navigation */}
-      <nav className="flex-1 p-2">
-        <ul className="space-y-1">
-          <li>
-            <Link
-              href="/"
-              className="flex items-center px-3 py-2 rounded-lg hover:bg-gray-800 transition-colors duration-200"
-            >
-              <HomeIcon className="w-5 h-5 mr-2" />
-              Home
-            </Link>
-          </li>
-        </ul>
-      </nav>
-
-      <div className="p-2">
-        <Link
-          href="/debug"
-          className="flex items-center px-3 py-2 rounded-lg hover:bg-gray-800 transition-colors duration-200"
-        >
-					Debug Info
-        </Link>
-      </div>
 
       {/* Bottom Icons */}
       <div className="p-2 border-t border-gray-700">
