@@ -45,6 +45,6 @@ export default function ImportSDA({ onSubmit, onCancel }: NewAuthenticatorProps)
           </button>
         </div>
       </form>
-	 </>
+   </>
   );
 }

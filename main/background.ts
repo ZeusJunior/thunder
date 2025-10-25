@@ -7,6 +7,7 @@ import { createWindow } from './helpers';
 import { LimitedAccount, SteamTwoFactorResponse, ThunderConfig } from './types';
 import SteamCommunity from 'steamcommunity';
 import SteamID from 'steamid';
+import SteamTOTP from 'steam-totp';
 const community = new SteamCommunity();
 // TODO: Fetch refresh token using SteamUser next time session expires
 
@@ -150,6 +151,30 @@ ipcMain.handle('refresh-profile', async (event, accountId: string) => {
   } catch (error) {
     console.error('Error refreshing profile:', error);
     return { success: false, error: error.message };
+  }
+});
+
+ipcMain.handle('get-auth-code', async () => {
+  try {
+    if (!store) {
+      throw new Error('Not authenticated');
+    }
+
+    const currentAccountId = store.get('currentAccountId');
+    if (!currentAccountId) {
+      throw new Error('No current account set');
+    }
+
+    const accounts = store.get('accounts', {});
+    const currentAccount = accounts[currentAccountId];
+    if (!currentAccount) {
+      throw new Error('Current account not found');
+    }
+
+    return SteamTOTP.getAuthCode(currentAccount.sharedSecret);
+  } catch (error) {
+    console.error('Error getting auth code:', error);
+    return error.message;
   }
 });
 

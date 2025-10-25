@@ -12,6 +12,7 @@ interface ChannelReturnTypes {
   'set-current-account': { success: boolean; error?: string };
 
   'refresh-profile': { success: boolean; error?: string };
+  'get-auth-code': string;
 
   'add-authenticator-login': { success: boolean; error?: string, codeRequired?: boolean, steamId?: string, recoveryCode?: string };
   'add-authenticator-finalize': { success: boolean; error?: string, recoveryCode?: string };

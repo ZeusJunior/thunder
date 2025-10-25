@@ -1860,6 +1860,13 @@
   dependencies:
     "@types/node" "*"
 
+"@types/steam-totp@^2.1.2":
+  version "2.1.2"
+  resolved "https://registry.yarnpkg.com/@types/steam-totp/-/steam-totp-2.1.2.tgz#932df00e0ab191dd51e0118b961c55cad8ddd832"
+  integrity sha512-XNg9/PkSgbAVy58O3vgSermXU7YNJCX7Cmqx4aNE8CE6sI3m0vm7HBXgSj9eLJjEUfMP1vg64LKP65bj0Jpc5g==
+  dependencies:
+    "@types/node" "*"
+
 "@types/steam-user@^5.1.0":
   version "5.1.0"
   resolved "https://registry.yarnpkg.com/@types/steam-user/-/steam-user-5.1.0.tgz#13f27fc33d3140f0313f7fb93ca1baa8fc268996"
@@ -6636,7 +6643,7 @@ steam-totp@^1.5.0:
   dependencies:
     "@doctormckay/stats-reporter" "^1.0.0"
 
-steam-totp@^2.0.1:
+steam-totp@^2.0.1, steam-totp@^2.1.2:
   version "2.1.2"
   resolved "https://registry.yarnpkg.com/steam-totp/-/steam-totp-2.1.2.tgz#ab03eea28e40dedddde3041468dc8551055d84cc"
   integrity sha512-bTKlc/NoIUQId+my+O556s55DDsNNXfVIPWFDNVu68beql7AJhV0c+GTjFxfwCDYfdc4NkAme+0WrDdnY2D2VA==

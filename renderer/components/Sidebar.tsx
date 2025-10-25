@@ -39,7 +39,7 @@ export default function Sidebar() {
           href="/debug"
           className="flex items-center px-3 py-2 rounded-lg hover:bg-gray-800 transition-colors duration-200"
         >
-					Debug Info
+          Debug Info
         </Link>
       </div>
 

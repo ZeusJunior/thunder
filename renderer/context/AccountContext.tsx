@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Account, ThunderConfig } from '../../main/types';
+import { Account, LimitedAccount, ThunderConfig } from '../../main/types';
 
 interface AccountContextType {
   currentAccount: Account | null;
@@ -7,14 +7,18 @@ interface AccountContextType {
   accounts: ThunderConfig['accounts'] | null;
   loadAccounts: () => Promise<void>;
   isLoading: boolean;
+  authCode: string;
+  seconds: number;
 }
 
 const AccountContext = createContext<AccountContextType | undefined>(undefined);
 
 export function AccountProvider({ children }: { children: ReactNode }) {
-  const [currentAccount, setCurrentAccountState] = useState<Account | null>(null);
+  const [currentAccount, setCurrentAccountState] = useState<LimitedAccount | null>(null);
   const [accounts, setAccounts] = useState<ThunderConfig['accounts'] | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [authCode, setAuthCode] = useState<string>('');
+  const [seconds, setSeconds] = useState<number>(0);
 
   const loadAccounts = async () => {
     try {
@@ -65,6 +69,41 @@ export function AccountProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
+    async function getAuthCode() {
+      const code = await window.ipc.invoke('get-auth-code');
+      return code;
+    };
+
+    function startTimer() {
+      if (!currentAccount?.meta.setupComplete) return;
+
+      const currentDateSeconds = new Date().getSeconds();
+      let interval: NodeJS.Timeout;
+
+      if (currentDateSeconds % 30 == 0) {
+        // Start the interval to update the auth code every 30 seconds
+        interval = setInterval(() => {
+          getAuthCode().then(code => setAuthCode(code));
+        }, 30 * 1000);
+      } else {
+        // Set a timeout to align with the next 30-second mark, then start the interval
+        interval = setTimeout(startTimer, (30 - currentDateSeconds % 30) * 1000);
+      }
+
+      getAuthCode().then(code => setAuthCode(code));
+      return interval;
+    }
+
+    const authInterval = startTimer();
+    const secondInterval = setInterval(() => setSeconds(new Date().getSeconds() % 30), 1000);
+
+    return () => {
+      clearInterval(authInterval);
+      clearInterval(secondInterval);
+    };
+  }, [currentAccount]);
+
+  useEffect(() => {
     loadAccounts();
   }, []);
 
@@ -74,6 +113,8 @@ export function AccountProvider({ children }: { children: ReactNode }) {
     accounts,
     loadAccounts,
     isLoading,
+    authCode,
+    seconds,
   };
 
   return <AccountContext.Provider value={value}>{children}</AccountContext.Provider>;
