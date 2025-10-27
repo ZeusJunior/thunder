@@ -11,6 +11,7 @@ interface ChannelReturnTypes {
   'get-current-account': { success: boolean; account?: LimitedAccount; error?: string };
   'set-current-account': { success: boolean; error?: string };
 
+  'login-again': { success: boolean; error?: string };
   'refresh-profile': { success: boolean; error?: string };
   'get-auth-code': string;
 

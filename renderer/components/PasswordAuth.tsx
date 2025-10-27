@@ -69,8 +69,8 @@ export default function PasswordAuth({ isFirstTime, onAuthenticated }: PasswordA
               {isFirstTime ? 'Set Up Password' : 'Enter Password'}
             </h2>
             <p className="mt-2 text-center text-sm text-gray-600">
-              {isFirstTime 
-                ? 'Create a password to secure your application' 
+              {isFirstTime
+                ? 'Create a password to secure your application'
                 : 'Please enter your password to access Thunder'
               }
             </p>
@@ -81,6 +81,7 @@ export default function PasswordAuth({ isFirstTime, onAuthenticated }: PasswordA
                 <label htmlFor="password" className="sr-only">
                   Password
                 </label>
+                {/* TODO: Make inputs reusable */}
                 <input
                   id="password"
                   name="password"

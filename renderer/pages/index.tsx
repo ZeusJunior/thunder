@@ -30,7 +30,7 @@ export default function HomePage() {
       </Head>
       <div className="p-6">
         <h1 className="text-2xl font-bold text-gray-900 mb-4">
-         Welcome to Thunder Authenticator - {currentAccount.personaName}
+          Welcome to Thunder Authenticator - {currentAccount.personaName}
         </h1>
 
         <div className="max-w-md mx-auto">
@@ -39,7 +39,7 @@ export default function HomePage() {
               <h2 className="text-lg font-medium text-gray-900 mb-2">
                 Steam Guard Code
               </h2>
-              
+
               {authCode ? (
                 <>
                   <div className="mb-4">
@@ -47,15 +47,15 @@ export default function HomePage() {
                       {authCode}
                     </div>
                   </div>
-                  
+
                   <div className="mb-4">
                     <div className="flex items-center justify-center space-x-2 text-sm text-gray-600">
                       <ClockIcon className="w-4 h-4" />
                       <span>Expires in {30 - seconds} seconds</span>
                     </div>
-                    
+
                     <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
-                      <div 
+                      <div
                         className="bg-indigo-600 h-2 rounded-full transition-all duration-1000 ease-linear"
                         style={{ width: `${(seconds / 30) * 100}%` }}
                       ></div>
@@ -64,7 +64,7 @@ export default function HomePage() {
 
                   <button
                     onClick={() => navigator.clipboard.writeText(authCode)}
-                    className="w-full px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors flex items-center justify-center space-x-2"
+                    className="w-full px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors flex items-center justify-center space-x-2 cursor-pointer"
                   >
                     <CopyIcon className="w-4 h-4" />
                     <span>Copy Code</span>
