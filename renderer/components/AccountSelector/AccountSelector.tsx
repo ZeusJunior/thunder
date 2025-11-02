@@ -10,7 +10,7 @@ interface AccountSelectorProps {
   onAccountSelected?: () => void;
 }
 
-export default function AccountSelector({ onAccountSelected = () => {} }: AccountSelectorProps) {
+export default function AccountSelector({ onAccountSelected = () => { } }: AccountSelectorProps) {
   const { accounts, isLoading, setCurrentAccount } = useAccount();
   const [isFirstAccount, setIsFirstAccount] = useState(true);
   const [addAccountMode, setAddAccountMode] = useState<'new' | 'sda' | null>(null);
@@ -27,22 +27,17 @@ export default function AccountSelector({ onAccountSelected = () => {} }: Accoun
     setError('');
   };
 
-  const handleSelectAccount = useCallback(async (accountId: string) => {
-    try {
-      const result = await setCurrentAccount(accountId);
-      if (result) {
-        onAccountSelected();
-        return;
-      }
-
-      setError('Failed to select account');
-    } catch (error) {
-      console.error('Error selecting account:', error);
-      setError('Failed to select account');
+  const handleSelectAccount = useCallback((accountId: string) => {
+    const result = setCurrentAccount(accountId);
+    if (result) {
+      onAccountSelected();
+      return;
     }
+
+    setError('Failed to select account');
   }, [onAccountSelected, setCurrentAccount]);
 
-  const handleImportSDA = async (e: React.FormEvent) => {
+  const handleImportSDA = (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 

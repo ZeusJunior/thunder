@@ -2,7 +2,7 @@ import CloudDownloadIcon from '../Icons/CloudDownload';
 import PlusIcon from '../Icons/Plus';
 
 interface ImportOptionsProps {
-  onSelect: (mode: 'new' | 'sda' | 'secrets' | null) => void;
+  onSelect: (mode: 'new' | 'sda' | null) => void;
   isFirstAccount: boolean;
 }
 
@@ -20,7 +20,7 @@ export default function ImportOptions({ onSelect, isFirstAccount }: ImportOption
             <PlusIcon className="w-5 h-5 mr-2" />
             New Authenticator
           </button>
-                          
+
           <button
             onClick={() => {
               onSelect('sda');
@@ -28,7 +28,7 @@ export default function ImportOptions({ onSelect, isFirstAccount }: ImportOption
             className="w-full flex items-center justify-center px-4 py-3 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           >
             <CloudDownloadIcon className="w-5 h-5 mr-2" />
-              Import from SDA maFile
+            Import from SDA maFile
           </button>
         </div>
       </div>

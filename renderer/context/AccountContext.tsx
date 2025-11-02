@@ -1,11 +1,11 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Account, LimitedAccount, ThunderConfig } from '../../main/types';
+import { LimitedAccount, ThunderConfig } from '../../main/types';
 
 interface AccountContextType {
-  currentAccount: Account | null;
-  setCurrentAccount: (accountId: string | null) => Promise<boolean>;
+  currentAccount: LimitedAccount | null;
+  setCurrentAccount: (accountId: string | null) => boolean;
   accounts: ThunderConfig['accounts'] | null;
-  loadAccounts: () => Promise<void>;
+  loadAccounts: () => void;
   isLoading: boolean;
   authCode: string;
   seconds: number;
@@ -20,57 +20,45 @@ export function AccountProvider({ children }: { children: ReactNode }) {
   const [authCode, setAuthCode] = useState<string>('');
   const [seconds, setSeconds] = useState<number>(0);
 
-  const loadAccounts = async () => {
-    try {
-      setIsLoading(true);
-      const result = await window.ipc.invoke('get-accounts');
-      if (result.success) {
-        setAccounts(result.accounts);
+  const loadAccounts = () => {
+    setIsLoading(true);
+    const result = window.electron.getAllAccounts();
+    setAccounts(result);
 
-        const currentResult = await window.ipc.invoke('get-current-account');
-        if (currentResult.success && currentResult.account) {
-          const accountExists = result.accounts[currentResult.account.id64];
-          if (accountExists) {
-            setCurrentAccountState(currentResult.account);
-          }
-        }
+    const currentResult = window.electron.getCurrentAccount();
+    if (currentResult) {
+      const accountExists = result[currentResult.id64];
+      if (accountExists) {
+        setCurrentAccountState(currentResult);
       }
-    } catch (error) {
-      console.error('Error loading accounts:', error);
-    } finally {
-      setIsLoading(false);
     }
+    setIsLoading(false);
   };
 
-  const setCurrentAccount = async (accountId: string | null) => {
-    try {
-      if (!accountId) {
-        setCurrentAccountState(null);
-        return true;
-      }
-
-      await loadAccounts();
-
-      if (accountId && accounts && accounts[accountId]) {
-        const result = await window.ipc.invoke('set-current-account', accountId);
-        if (result.success) {
-          setCurrentAccountState(accounts[accountId]);
-        }
-
-        return true;
-      }
-
+  const setCurrentAccount = (accountId: string | null) => {
+    if (!accountId) {
       setCurrentAccountState(null);
-      return false;
-    } catch (error) {
-      console.error('Error setting current account:', error);
-      return false;
+      return true;
     }
+
+    loadAccounts();
+
+    if (accountId && accounts && accounts[accountId]) {
+      const result = window.electron.setCurrentAccount(accountId);
+      if (result) {
+        setCurrentAccountState(accounts[accountId]);
+      }
+
+      return true;
+    }
+
+    setCurrentAccountState(null);
+    return false;
   };
 
   useEffect(() => {
-    async function getAuthCode() {
-      const code = await window.ipc.invoke('get-auth-code');
+    function getAuthCode() {
+      const code = window.electron.getAuthCode();
       return code;
     };
 
@@ -83,14 +71,14 @@ export function AccountProvider({ children }: { children: ReactNode }) {
       if (currentDateSeconds % 30 == 0) {
         // Start the interval to update the auth code every 30 seconds
         interval = setInterval(() => {
-          getAuthCode().then(code => setAuthCode(code));
+          setAuthCode(getAuthCode());
         }, 30 * 1000);
       } else {
         // Set a timeout to align with the next 30-second mark, then start the interval
         interval = setTimeout(startTimer, (30 - currentDateSeconds % 30) * 1000);
       }
 
-      getAuthCode().then(code => setAuthCode(code));
+      setAuthCode(getAuthCode());
       return interval;
     }
 

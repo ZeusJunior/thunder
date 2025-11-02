@@ -23,12 +23,12 @@ export default function AccountList({ onSelect }: { onSelect: (accountId: string
   }, [search, accounts]);
 
   const refreshProfile = async (accountId: string) => {
-    const result = await window.ipc.invoke('refresh-profile', accountId);
-    if (result.success) {
-      return await loadAccounts();
+    const result = await window.electron.refreshProfile(accountId);
+    if (result) {
+      return loadAccounts();
     }
 
-    setError(result.error || 'Failed to refresh profile');
+    setError('Failed to refresh profile');
   };
 
   if (isLoading) {

@@ -12,7 +12,7 @@ export default function PasswordAuth({ isFirstTime, onAuthenticated }: PasswordA
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
@@ -30,27 +30,19 @@ export default function PasswordAuth({ isFirstTime, onAuthenticated }: PasswordA
         return;
       }
 
-      try {
-        const result = await window.ipc.invoke('create-encrypted-config', password);
-        if (result.success) {
-          onAuthenticated();
-        } else {
-          setError(result.error || 'Failed to create encrypted configuration');
-        }
-      } catch {
-        setError('An unexpected error occurred');
+      const result = window.electron.config.create(password);
+      if (result.success) {
+        onAuthenticated();
+      } else {
+        setError(result.error || 'Failed to create encrypted configuration');
       }
     } else {
       // Existing config - verify password
-      try {
-        const result = await window.ipc.invoke('verify-password', password);
-        if (result.success) {
-          onAuthenticated();
-        } else {
-          setError(result.error || 'Invalid password');
-        }
-      } catch {
-        setError('An unexpected error occurred');
+      const result = window.electron.config.initialize(password);
+      if (result.success) {
+        onAuthenticated();
+      } else {
+        setError(result.error || 'Invalid password');
       }
     }
 

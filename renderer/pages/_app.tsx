@@ -14,7 +14,9 @@ function MyApp({ Component, pageProps }: AppProps) {
   const [hasAccountSelected, setHasAccountSelected] = useState(false);
 
   useEffect(() => {
-    checkAuthStatus();
+    const configExists = window.electron.config.exists();
+    setIsFirstTime(!configExists);
+    setIsLoading(false);
   }, []);
 
   useEffect(() => {
@@ -23,27 +25,10 @@ function MyApp({ Component, pageProps }: AppProps) {
     }
   }, [isAuthenticated]);
 
-  const checkAuthStatus = async () => {
-    try {
-      // Check if config file exists
-      const configExists = await window.ipc.invoke('check-config-exists');
-      setIsFirstTime(!configExists);
-      setIsLoading(false);
-    } catch (error) {
-      console.error('Error checking auth status:', error);
-      setIsFirstTime(true);
-      setIsLoading(false);
-    }
-  };
-
-  const checkCurrentAccount = async () => {
-    try {
-      const result = await window.ipc.invoke('get-current-account');
-      if (result.success && result.account) {
-        setHasAccountSelected(true);
-      }
-    } catch (error) {
-      console.error('Error checking current account:', error);
+  const checkCurrentAccount = () => {
+    const result = window.electron.getCurrentAccount();
+    if (result) {
+      setHasAccountSelected(true);
     }
   };
 

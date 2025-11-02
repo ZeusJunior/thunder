@@ -1,19 +1,12 @@
 import path from 'path';
-import fs from 'fs';
 import { app, ipcMain, shell } from 'electron';
 import serve from 'electron-serve';
-import Store from 'electron-store';
-import { createWindow } from './helpers';
-import { LimitedAccount, SteamTwoFactorResponse, ThunderConfig } from './types';
+import { createWindow, getCurrentAccount } from './helpers';
 import SteamCommunity from 'steamcommunity';
-import SteamID from 'steamid';
-import SteamTOTP from 'steam-totp';
 import { loginAgain } from './helpers/steam';
-const community = new SteamCommunity();
 
-const isProd = process.env.NODE_ENV === 'production';
 
-if (isProd) {
+if (app.isPackaged) {
   serve({ directory: 'app' });
 } else {
   app.setPath('userData', `${app.getPath('userData')} (development)`);
@@ -30,7 +23,7 @@ if (isProd) {
     },
   });
 
-  if (isProd) {
+  if (app.isPackaged) {
     await mainWindow.loadURL('app://./');
   } else {
     const port = process.argv[2];
@@ -67,25 +60,15 @@ ipcMain.on(
 );
 
 // Password authentication IPC handlers
-let store: Store<ThunderConfig> | null = null;
 
 ipcMain.on('open-steam-window', async (event, { url }: { url: string }) => {
-  if (!store) {
-    throw new Error('Not authenticated');
-  }
-
-  const currentAccountId = store.get('currentAccountId');
-  if (!currentAccountId) {
+  const account = getCurrentAccount(false);
+  if (!account) {
     throw new Error('No current account set');
   }
 
-  const accounts = store.get('accounts', {});
-  const currentAccount = accounts[currentAccountId];
-  if (!currentAccount) {
-    throw new Error('Current account not found');
-  }
-
-  community.setCookies(currentAccount.cookies || []);
+  const community = new SteamCommunity();
+  community.setCookies(account.cookies || []);
   community.loggedIn(async (err, loggedIn) => {
     if (err) {
       event.reply('login-required');
@@ -97,7 +80,7 @@ ipcMain.on('open-steam-window', async (event, { url }: { url: string }) => {
         width: 1200,
         height: 800,
       });
-      const cookies = store.get('accounts', {})[currentAccountId]?.cookies || [];
+      const cookies = account.cookies || [];
       for (const cookie of cookies) {
         const [name, value] = cookie.split('=');
         await steamWindow.webContents.session.cookies.set({
@@ -116,19 +99,15 @@ ipcMain.on('open-steam-window', async (event, { url }: { url: string }) => {
     }
 
     // If we're not logged in, check if we have a refresh token to re-authenticate
-    if (!currentAccount?.refreshToken) {
+    if (!account?.refreshToken) {
       event.reply('login-required');
       return;
     }
 
     loginAgain({
-      refreshToken: currentAccount.refreshToken,
+      refreshToken: account.refreshToken,
     })
-      .then(({ cookies, newRefreshToken }) => {
-        // Update the stored cookies and refresh token
-        store.set(`accounts.${currentAccountId}.cookies`, cookies);
-        store.set(`accounts.${currentAccountId}.refreshToken`, newRefreshToken);
-
+      .then(() => {
         proceed();
       })
       .catch(() => {
@@ -137,401 +116,4 @@ ipcMain.on('open-steam-window', async (event, { url }: { url: string }) => {
 
     return;
   });
-});
-
-ipcMain.handle('check-config-exists', async () => {
-  try {
-    const userDataPath = app.getPath('userData');
-    const configPath = path.join(userDataPath, 'config.json');
-    return fs.existsSync(configPath);
-  } catch (error) {
-    console.error('Error checking config existence:', error);
-    return false;
-  }
-});
-
-ipcMain.handle('create-encrypted-config', async (event, password: string) => {
-  try {
-    store = new Store({
-      name: 'config',
-      encryptionKey: password,
-    });
-
-    store.set('initialized', true);
-    store.set('createdAt', new Date().toISOString());
-
-    return { success: true };
-  } catch (error) {
-    console.error('Error creating encrypted config:', error);
-    return { success: false, error: error.message };
-  }
-});
-
-ipcMain.handle('verify-password', async (event, password: string) => {
-  try {
-    store = new Store({
-      name: 'config',
-      encryptionKey: password,
-    });
-
-    const initialized = store.get('initialized');
-    if (initialized === true) {
-      return { success: true };
-    }
-
-    return { success: false, error: 'Invalid password or corrupted config' };
-  } catch (error) {
-    console.error('Error verifying password:', error);
-    return { success: false, error: 'Invalid password' };
-  }
-});
-
-ipcMain.handle('debug-info', async () => {
-  if (isProd) {
-    return { error: 'Debug info is only available in development mode' };
-  }
-  return {
-    userDataPath: app.getPath('userData'),
-    isProd,
-    store: store?.store,
-  };
-});
-
-ipcMain.handle('refresh-profile', async (event, accountId: string) => {
-  try {
-    if (!store) {
-      return { success: false, error: 'Not authenticated' };
-    }
-
-    const accounts = store.get('accounts', {});
-    const account = accounts[accountId];
-
-    if (!account) {
-      return { success: false, error: 'Account not found' };
-    }
-
-    return new Promise((resolve) => {
-      community.getSteamUser(new SteamID(accountId), (err, communityUser) => {
-        if (err) {
-          console.error('Error fetching profile info:', err);
-          return resolve({ success: false, error: err.message });
-        }
-
-        // Update account info
-        store.set(`accounts.${accountId}.personaName`, communityUser.name);
-        store.set(
-          `accounts.${accountId}.avatarUrl`,
-          `https://avatars.fastly.steamstatic.com/${communityUser.avatarHash}_full.jpg`
-        );
-
-        return resolve({ success: true });
-      });
-    });
-  } catch (error) {
-    console.error('Error refreshing profile:', error);
-    return { success: false, error: error.message };
-  }
-});
-
-ipcMain.handle('get-auth-code', async () => {
-  try {
-    if (!store) {
-      throw new Error('Not authenticated');
-    }
-
-    const currentAccountId = store.get('currentAccountId');
-    if (!currentAccountId) {
-      throw new Error('No current account set');
-    }
-
-    const accounts = store.get('accounts', {});
-    const currentAccount = accounts[currentAccountId];
-    if (!currentAccount) {
-      throw new Error('Current account not found');
-    }
-
-    return SteamTOTP.getAuthCode(currentAccount.sharedSecret);
-  } catch (error) {
-    console.error('Error getting auth code:', error);
-    return error.message;
-  }
-});
-
-// Account management IPC handlers
-ipcMain.handle('get-accounts', async () => {
-  try {
-    if (!store) {
-      return { success: false, error: 'Not authenticated', accounts: {} };
-    }
-
-    const accounts = store.get('accounts', {});
-
-    // Return limited account info only
-    const limitedAccounts: Record<string, LimitedAccount> = {};
-    for (const [id, account] of Object.entries(accounts)) {
-      limitedAccounts[id] = {
-        id64: account.id64,
-        personaName: account.personaName,
-        accountName: account.accountName,
-        avatarUrl: account.avatarUrl,
-        meta: account.meta,
-      };
-    }
-
-    return { success: true, accounts: limitedAccounts };
-  } catch (error) {
-    console.error('Error getting accounts:', error);
-    return { success: false, error: error.message, accounts: [] };
-  }
-});
-
-ipcMain.handle('get-current-account', async () => {
-  try {
-    if (!store) {
-      return { success: false, error: 'Not authenticated' };
-    }
-
-    const currentAccountId = store.get('currentAccountId');
-    if (!currentAccountId) {
-      return { success: true, account: null };
-    }
-
-    const accounts = store.get('accounts', {});
-    const currentAccount = accounts[currentAccountId];
-    const limitedAccount: LimitedAccount = {
-      id64: currentAccount.id64,
-      personaName: currentAccount.personaName,
-      accountName: currentAccount.accountName,
-      avatarUrl: currentAccount.avatarUrl,
-      meta: currentAccount.meta,
-    };
-    return { success: true, account: limitedAccount || null };
-  } catch (error) {
-    console.error('Error getting current account:', error);
-    return { success: false, error: error.message };
-  }
-});
-
-ipcMain.handle('set-current-account', async (event, accountId: string) => {
-  try {
-    if (!store) {
-      return { success: false, error: 'Not authenticated' };
-    }
-
-    const accounts = store.get('accounts', {});
-    const account = accounts[accountId];
-
-    if (!account) {
-      return { success: false, error: 'Account not found' };
-    }
-
-    store.set('currentAccountId', accountId);
-    return { success: true };
-  } catch (error) {
-    console.error('Error setting current account:', error);
-    return { success: false, error: error.message };
-  }
-});
-
-// Steam methods for adding accounts
-ipcMain.handle(
-  'add-authenticator-login',
-  async (
-    event,
-    {
-      accountName,
-      password,
-      authCode,
-    }: {
-      accountName: string;
-      password: string;
-      authCode?: string;
-    }
-  ) => {
-    try {
-      if (!store) {
-        return { success: false, error: 'Not authenticated' };
-      }
-
-      const details = { accountName, password, authCode, disableMobile: false };
-
-      return new Promise((resolve) => {
-        community.login(details, (err, _sessionID, cookies) => {
-          if (err) {
-            if (err.message === 'SteamGuard') {
-              return resolve({
-                success: false,
-                error: `Please input the Steam Guard code sent to your email ending with ${err.emaildomain}`,
-                codeRequired: true,
-              });
-            }
-            if (err.message === 'InvalidPassword') {
-              return resolve({
-                success: false,
-                error:
-                  'Your password is invalid, please double check your login information.',
-              });
-            }
-            if (err.message === 'SteamGuardMobile') {
-              return resolve({
-                success: false,
-                error:
-                  'This account is protected by Steam Guard Mobile Authenticator. You must disable it if you want to use Thunder as your authenticator.',
-              });
-            }
-
-            return resolve({ success: false, error: err.message });
-          }
-
-          const accounts = store.get('accounts', {});
-          const steamId = community.steamID.getSteamID64();
-          console.log('Steam login successful for', steamId);
-          if (accounts[steamId]) {
-            return resolve({
-              success: false,
-              error: 'This account has already been added.',
-            });
-          }
-
-          community.getSteamUser(new SteamID(steamId), (err, communityUser) => {
-            if (err) {
-              // It's possible the profile couldn't be found if the account hasn't been set up yet
-              // That's fine, ignore that error
-              if (
-                err.message &&
-                !err.message.includes('profile could not be found')
-              ) {
-                console.error('Error fetching profile info:', err);
-              }
-            }
-
-            // 3 callbacks, yay
-            community.enableTwoFactor(
-              (err, response: SteamTwoFactorResponse) => {
-                if (err || response?.status !== 1) {
-                  console.error(
-                    'Error enabling 2FA with status:',
-                    response?.status,
-                    'and error:',
-                    err
-                  );
-                  return resolve({
-                    success: false,
-                    error: err?.message || `Status ${response?.status}`,
-                  });
-                }
-
-                accounts[steamId] = {
-                  id64: steamId,
-                  personaName: communityUser?.name || accountName,
-                  accountName,
-                  sharedSecret: response.shared_secret,
-                  identitySecret: response.identity_secret,
-                  recoveryCode: response.revocation_code,
-                  avatarUrl: `https://avatars.fastly.steamstatic.com/${
-                    communityUser?.avatarHash ||
-                    'fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb'
-                  }_full.jpg`,
-                  meta: {
-                    setupComplete: false,
-                    createdAt: new Date().toISOString(),
-                  },
-                  cookies,
-                  twoFactorResponse: response,
-                };
-
-                store.set('accounts', accounts);
-                return resolve({
-                  success: true,
-                  steamId,
-                  recoveryCode: response.revocation_code,
-                });
-              }
-            );
-          });
-        });
-      });
-    } catch (error) {
-      console.error('Error adding account:', error);
-      return { success: false, error: error.message };
-    }
-  }
-);
-
-ipcMain.handle(
-  'add-authenticator-finalize',
-  async (
-    event,
-    { steamId, activationCode }: { steamId: string; activationCode: string }
-  ) => {
-    try {
-      if (!store) {
-        return { success: false, error: 'Not authenticated' };
-      }
-
-      const accounts = store.get('accounts', {});
-      const account = accounts[steamId];
-
-      if (!account) {
-        return { success: false, error: 'Account not found' };
-      }
-
-      // Finalize the 2FA setup
-      return new Promise((resolve) => {
-        community.finalizeTwoFactor(
-          account.sharedSecret,
-          activationCode,
-          (err) => {
-            if (err) {
-              console.error('Error finalizing 2FA:', err);
-              return resolve({ success: false, error: err.message });
-            }
-
-            console.log('2FA setup finalized successfully for ', steamId);
-
-            store.set(`accounts.${steamId}.meta.setupComplete`, true);
-
-            return resolve({ success: true });
-          }
-        );
-      });
-    } catch (error) {
-      console.error('Error finalizing 2FA:', error);
-      return { success: false, error: error.message };
-    }
-  }
-);
-
-ipcMain.handle('login-again', async (event, { password }) => {
-  try {
-    if (!store) {
-      throw new Error('Not authenticated');
-    }
-
-    const currentAccountId = store.get('currentAccountId');
-    if (!currentAccountId) {
-      throw new Error('No current account set');
-    }
-
-    const accounts = store.get('accounts', {});
-    const currentAccount = accounts[currentAccountId];
-    if (!currentAccount) {
-      throw new Error('Current account not found');
-    }
-
-    return loginAgain({
-      accountName: currentAccount.accountName,
-      password,
-      twoFactorCode: SteamTOTP.getAuthCode(currentAccount.sharedSecret),
-    }).then(({ cookies, newRefreshToken }) => {
-      // Update the stored cookies and refresh token
-      store.set(`accounts.${currentAccountId}.cookies`, cookies);
-      store.set(`accounts.${currentAccountId}.refreshToken`, newRefreshToken);
-      return { success: true };
-    });
-
-  } catch (error) {
-    console.error('Error re-authenticating:', error);
-    return { success: false, error: error.message };
-  }
 });

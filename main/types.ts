@@ -14,7 +14,7 @@ export interface Account {
   sharedSecret?: string;
   identitySecret?: string;
   recoveryCode?: string;
-  avatarUrl?: string;
+  avatarUrl: string;
 
   // Steam login stuff
   refreshToken?: string;

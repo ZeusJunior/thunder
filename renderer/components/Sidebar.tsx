@@ -16,30 +16,33 @@ export default function Sidebar() {
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   const handleOpenSteam = (url: string) => {
-    window.ipc.send('open-steam-window', { url });
-    // Perhaps our session expired, listen for login-required event
-    window.ipc.on('login-required', () => {
+    window.electron.openSteamWindow(url);
+    // Perhaps our session expired, listen for event
+    window.electron.events.onLoginRequired(() => {
       setIsPopupOpen(true);
     });
   };
 
-  const handlePasswordSubmit = async (e: React.FormEvent) => {
+  const handlePasswordSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (password.trim()) {
-      setIsLoggingIn(true);
-      const result = await window.ipc.invoke('login-again', {
-        password,
-      });
+    if (!password.trim()) {
+      return;
+    }
 
-      if (result.success) {
+    setIsLoggingIn(true);
+
+    window.electron.loginAgain(password)
+      .then(() => {
         setPassword('');
         setPopupError('');
         setIsPopupOpen(false);
-      } else {
-        setPopupError(result.error);
-      }
-      setIsLoggingIn(false);
-    }
+      })
+      .catch((err) => {
+        setPopupError(err.message || 'An unknown error occurred');
+      })
+      .finally(() => {
+        setIsLoggingIn(false);
+      });
   };
 
   return (
@@ -121,7 +124,7 @@ export default function Sidebar() {
         <div className="p-2 border-t border-gray-700">
           <div className="flex space-x-2">
             <button
-              onClick={() => window.ipc.send('open-new-window', { url: 'https://github.com/ZeusJunior/thunder', external: true })}
+              onClick={() => window.electron.openWindow('https://github.com/ZeusJunior/thunder', true)}
               className="cursor-pointer flex-1 flex items-center justify-center p-2 rounded-lg hover:bg-gray-800 transition-colors duration-200"
               title="GitHub Repository"
             >

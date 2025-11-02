@@ -14,8 +14,8 @@ export const createWindow = (
   const name = `window-state-${windowName}`;
   const store = new Store<Rectangle>({ name });
   const defaultSize = {
-    width: options.width,
-    height: options.height,
+    width: options.width || 800,
+    height: options.height || 600,
   };
   let state = {};
 
@@ -32,7 +32,7 @@ export const createWindow = (
     };
   };
 
-  const windowWithinBounds = (windowState, bounds) => {
+  const windowWithinBounds = (windowState: Rectangle, bounds: Rectangle) => {
     return (
       windowState.x >= bounds.x &&
       windowState.y >= bounds.y &&
@@ -49,7 +49,7 @@ export const createWindow = (
     });
   };
 
-  const ensureVisibleOnSomeDisplay = (windowState) => {
+  const ensureVisibleOnSomeDisplay = (windowState: Rectangle) => {
     const visible = screen.getAllDisplays().some((display) => {
       return windowWithinBounds(windowState, display.bounds);
     });
@@ -68,6 +68,7 @@ export const createWindow = (
     store.set(key, state);
   };
 
+  // @ts-expect-error Idunno x-y coords and idrc
   state = ensureVisibleOnSomeDisplay(restore());
 
   const win = new BrowserWindow({

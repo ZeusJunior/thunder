@@ -43,7 +43,7 @@ module.exports = [
       ...typescriptEslint.configs.recommended.rules,
       semi: ["error", "always"],
       "@typescript-eslint/no-explicit-any": "warn",
-      indent: ["error", 2],
+      indent: ["error", 2, { "SwitchCase": 1 }],
       quotes: ["error", "single"],
     },
   },

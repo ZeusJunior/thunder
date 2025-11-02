@@ -19,16 +19,16 @@ export default function NewAuthenticator({ onSuccess, onCancel }: NewAuthenticat
 
   const getStepContent = () => {
     switch (step) {
-    case 0:
-      return <LoginStep onCancel={onCancel} setError={setError} setSteamId={setSteamId} setRecoveryCode={setRecoveryCode} nextStep={() => setStep(1)} />;
-    case 1:
-      return <FinalizeStep onCancel={onCancel} setError={setError} nextStep={() => setStep(2)} steamId={steamId} />;
-    case 2:
-      return <CheckRecoveryCodeStep setError={setError} recoveryCode={recoveryCode} nextStep={() => setStep(3)} />;
-    case 3:
-      return <CongratulationsStep onContinue={() => onSuccess(steamId)} />;
-    default:
-      return null;
+      case 0:
+        return <LoginStep onCancel={onCancel} setError={setError} setSteamId={setSteamId} setRecoveryCode={setRecoveryCode} nextStep={() => setStep(1)} />;
+      case 1:
+        return <FinalizeStep onCancel={onCancel} setError={setError} nextStep={() => setStep(2)} steamId={steamId} />;
+      case 2:
+        return <CheckRecoveryCodeStep setError={setError} recoveryCode={recoveryCode} nextStep={() => setStep(3)} />;
+      case 3:
+        return <CongratulationsStep onContinue={() => onSuccess(steamId)} />;
+      default:
+        return null;
     }
   };
 
@@ -38,10 +38,10 @@ export default function NewAuthenticator({ onSuccess, onCancel }: NewAuthenticat
         step < 3 && (
           <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
             <h3 className="text-lg font-medium text-gray-900 mb-2">
-            Add new authenticator
+              Add new authenticator
             </h3>
             <p className="text-sm text-gray-600">
-            Set up a new Steam Guard authenticator for your account.
+              Set up a new Steam Guard authenticator for your account.
             </p>
           </div>
         )
@@ -73,7 +73,7 @@ function LoginStep({ onCancel, setError, setSteamId, setRecoveryCode, nextStep }
   const [showAuthCode, setShowAuthCode] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleLogin = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
@@ -84,25 +84,28 @@ function LoginStep({ onCancel, setError, setSteamId, setRecoveryCode, nextStep }
       authCode,
     };
 
-    const result = await window.ipc.invoke('add-authenticator-login', loginInfo);
-    if (result.codeRequired) {
-      setShowAuthCode(true);
-      setError(result.error);
-      setIsLoading(false);
-      return;
-    }
+    window.electron.addAuthenticator(loginInfo)
+      .then((result) => {
+        if ('codeRequired' in result && result.codeRequired) {
+          // Need to enter Steam Guard code
+          setShowAuthCode(true);
+          setError(result.message);
+          return;
+        }
 
-    if (!result.success) {
-      console.error('Error adding authenticator:', result.error);
-      setError(`Failed to add authenticator: ${result.error}`);
-      setIsLoading(false);
-      return;
-    }
-
-    // Successful login, 2FA process started
-    setSteamId(result.steamId);
-    setRecoveryCode(result.recoveryCode);
-    nextStep();
+        if ('steamId' in result) {
+          // Successful login, 2FA process started
+          setSteamId(result.steamId);
+          setRecoveryCode(result.recoveryCode);
+          nextStep();
+        }
+      })
+      .catch((err: Error) => {
+        setError(`Failed to add authenticator: ${err.message}`);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
   };
 
   return (
@@ -110,7 +113,7 @@ function LoginStep({ onCancel, setError, setSteamId, setRecoveryCode, nextStep }
       {showAuthCode ? (
         <div>
           <label htmlFor="authCode" className="block text-sm font-medium text-gray-700">
-              Steam Guard Code
+            Steam Guard Code
           </label>
           <input
             type="text"
@@ -127,7 +130,7 @@ function LoginStep({ onCancel, setError, setSteamId, setRecoveryCode, nextStep }
         <>
           <div>
             <label htmlFor="accountName" className="block text-sm font-medium text-gray-700">
-            Steam Username
+              Steam Username
             </label>
             <input
               type="text"
@@ -142,7 +145,7 @@ function LoginStep({ onCancel, setError, setSteamId, setRecoveryCode, nextStep }
 
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-            Steam Password
+              Steam Password
             </label>
             <input
               type="password"
@@ -198,27 +201,28 @@ function FinalizeStep({ onCancel, setError, nextStep, steamId }: FinalizeStepPro
   const [activationCode, setActivationCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleFinalize = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleFinalize = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
 
-    const result = await window.ipc.invoke('add-authenticator-finalize', { steamId, activationCode });
-    if (!result.success) {
-      setError(`Failed to finalize authenticator: ${result.error || 'Unknown error'}`);
-      setIsLoading(false);
-      return;
-    }
-
-    // Successful, show recovery code in next step
-    nextStep();
+    window.electron.finalizeAuthenticator(steamId, activationCode)
+      .then(() => {
+        nextStep();
+      })
+      .catch((err: Error) => {
+        setError(`Failed to finalize authenticator: ${err.message}`);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
   };
 
   return (
     <form onSubmit={handleFinalize} className="space-y-4">
       <div>
         <label htmlFor="authCode" className="block text-sm font-medium text-gray-700">
-        Activation Code
+          Activation Code
         </label>
         <input
           type="text"
@@ -277,7 +281,7 @@ function CheckRecoveryCodeStep({ setError, recoveryCode, nextStep }: CheckRecove
       nextStep();
       return;
     }
-    
+
     setError('Recovery code is incorrect');
   };
 
