@@ -1,4 +1,4 @@
-appId: com.example.nextron
+appId: com.zeusjunior.thunder
 productName: Thunder Authenticator
 copyright: Copyright © 2025 ZeusJunior
 directories:
@@ -9,4 +9,34 @@ files:
     filter:
       - package.json
       - app
-publish: null
+
+win:
+  target:
+    - target: nsis
+      arch: [x64, ia32]
+  icon: resources/icon.ico
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+
+mac:
+  target:
+    - target: dmg
+      arch: [universal]
+    - target: zip
+      arch: [universal]
+  icon: resources/icon.icns
+  category: public.app-category.utilities
+
+linux:
+  target:
+    - target: AppImage
+      arch: [x64]
+  icon: resources/icon.png
+  category: Utility
+
+publish:
+  provider: github
+  owner: ZeusJunior
+  repo: thunder
