@@ -1,11 +1,12 @@
 import path from 'path';
-import { app, ipcMain, shell } from 'electron';
+import { app, ipcMain, shell, dialog } from 'electron';
 import serve from 'electron-serve';
-import { createWindow, getCurrentAccount, getDebugInfo, configFileExists, getAllAccounts, setCurrentAccount } from './helpers';
+import { createWindow, getCurrentAccount, getDebugInfo, configFileExists, getAllAccounts, setCurrentAccount, addAccount, accountExists } from './helpers';
 import SteamCommunity from 'steamcommunity';
 import { addAuthenticator, finalizeAuthenticator, getAuthCode, loginAgain, refreshProfile } from './helpers/steam';
 import { createEncryptedStore, initializeStore } from './store';
-import { IpcHandlers } from './types';
+import { Account, IpcHandlers, MaFileData } from './types';
+import { readFile } from 'fs/promises';
 
 // Type-safe IPC handler helper
 function handleIpc<K extends keyof IpcHandlers>(
@@ -187,4 +188,82 @@ handleIpc('get-auth-code', async () => {
     return '';
   }
   return getAuthCode(account.sharedSecret);
+});
+
+handleIpc('show-mafile-dialog', async () => {
+  const result = await dialog.showOpenDialog({
+    title: 'Select maFile',
+    filters: [
+      { name: 'maFile', extensions: ['maFile'] },
+    ],
+    properties: ['openFile']
+  });
+
+  if (result.canceled) {
+    return null;
+  }
+
+  return result.filePaths[0];
+});
+
+handleIpc('import-mafile', async (event, filePath) => {
+  const fileContent = await readFile(filePath, 'utf-8');
+  // Quick check if file is json
+  if (!fileContent.trim().startsWith('{')) {
+    throw new Error('Invalid maFile format, is your maFile still encrypted?');
+  }
+
+  // Fix SteamID to be a string
+  const maFileData: MaFileData = JSON.parse(fileContent.replace(/"SteamID":(\d+)/, '"SteamID":"$1"'));
+
+  if (!maFileData.shared_secret || !maFileData.identity_secret || !maFileData.Session.SteamID) {
+    throw new Error('Invalid maFile format');
+  }
+
+  const existingAccount = accountExists(maFileData.Session.SteamID);
+
+  if (existingAccount) {
+    throw new Error('An account with this SteamID has already been added to Thunder');
+  }
+
+  // Create account data
+  const accountData: Account = {
+    id64: maFileData.Session.SteamID,
+    personaName: maFileData.account_name,
+    accountName: maFileData.account_name,
+    sharedSecret: maFileData.shared_secret,
+    identitySecret: maFileData.identity_secret,
+    recoveryCode: maFileData.revocation_code,
+    avatarUrl: 'https://avatars.fastly.steamstatic.com/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg',
+    twoFactorResponse: {
+      shared_secret: maFileData.shared_secret,
+      serial_number: maFileData.serial_number,
+      revocation_code: maFileData.revocation_code,
+      uri: maFileData.uri,
+      server_time: maFileData.server_time,
+      account_name: maFileData.account_name,
+      token_gid: maFileData.token_gid,
+      identity_secret: maFileData.identity_secret,
+      secret_1: maFileData.secret_1,
+      status: maFileData.status,
+      // maFiles do not have a confirm_type
+    },
+    meta: {
+      setupComplete: true,
+      createdAt: new Date().toISOString()
+    }
+  };
+
+  if ('RefreshToken' in maFileData.Session && maFileData.Session.RefreshToken) {
+    accountData.refreshToken = maFileData.Session.RefreshToken;
+  }
+
+  // Add the account
+  const success = addAccount(maFileData.Session.SteamID, accountData);
+
+  if (!success) {
+    throw new Error('Failed to add account');
+  }
+
+  return maFileData.Session.SteamID;
 });

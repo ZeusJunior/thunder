@@ -38,19 +38,6 @@ export default function AccountSelector({ onAccountSelected = () => { } }: Accou
       });
   }, [onAccountSelected, setCurrentAccount]);
 
-  const handleImportSDA = (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-
-    try {
-      // TODO: Implement SDA maFile parsing
-      setError('SDA import is not yet implemented');
-    } catch (error) {
-      console.error('Error importing SDA file:', error);
-      setError('Failed to import SDA file');
-    }
-  };
-
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -102,7 +89,10 @@ export default function AccountSelector({ onAccountSelected = () => { } }: Accou
               )}
 
               {addAccountMode === 'sda' && (
-                <ImportSDA onSubmit={handleImportSDA} onCancel={() => setAddAccountMode(null)} />
+                <ImportSDA
+                  onSuccess={handleSelectAccount}
+                  onCancel={() => setAddAccountMode(null)}
+                />
               )}
             </div>
           )}

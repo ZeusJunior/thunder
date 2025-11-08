@@ -44,6 +44,13 @@ const handler = {
     return invoke('get-auth-code');
   },
 
+  showMaFileDialog: () => {
+    return invoke('show-mafile-dialog');
+  },
+  importMaFile: (filePath: string) => {
+    return invoke('import-mafile', filePath);
+  },
+
   events: {
     onLoginRequired: (callback: () => void) => {
       ipcRenderer.on('login-required', () => {

@@ -38,6 +38,33 @@ export interface SteamTwoFactorResponse extends SteamUser.TwoFactorResponse {
   confirm_type?: number;
 }
 
+export interface MaFileData {
+  shared_secret: string;
+  serial_number: string;
+  revocation_code: string;
+  uri: `otpauth://totp/Steam:${string}?secret=${string}&issuer=Steam`;
+  server_time: number;
+  account_name: string;
+  token_gid: string;
+  identity_secret: string;
+  secret_1: string;
+  status: number;
+  device_id: string;
+  fully_enrolled: true;
+  Session: {
+    SessionID: string;
+    SteamLogin: string;
+    SteamLoginSecure: string;
+    WebCookie: string;
+    OAuthToken: string;
+    SteamID: string;
+  } | {
+    SteamID: string;
+    AccessToken: string;
+    RefreshToken: string;
+  }
+}
+
 export interface DebugInfo {
   userDataPath: string;
   isProd: boolean;
@@ -66,4 +93,6 @@ export interface IpcHandlers {
   'finalize-authenticator': (steamId: string, activationCode: string) => Promise<true>;
   'login-again': (password: string) => Promise<void>;
   'get-auth-code': () => Promise<string>;
+  'show-mafile-dialog': () => Promise<string | null>;
+  'import-mafile': (filePath: string) => Promise<string>;
 }
