@@ -1,11 +1,11 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { LimitedAccount, ThunderConfig } from '../../main/types';
+import { LimitedAccount } from '../../main/types';
 
 interface AccountContextType {
   currentAccount: LimitedAccount | null;
   setCurrentAccount: (accountId: string | null) => Promise<boolean>;
-  accounts: ThunderConfig['accounts'];
-  loadAccounts: () => Promise<void>;
+  accounts: Record<string, LimitedAccount>;
+  loadAccounts: () => Promise<Record<string, LimitedAccount>>;
   isLoading: boolean;
   authCode: string;
   seconds: number;
@@ -15,7 +15,7 @@ const AccountContext = createContext<AccountContextType | undefined>(undefined);
 
 export function AccountProvider({ children }: { children: ReactNode }) {
   const [currentAccount, setCurrentAccountState] = useState<LimitedAccount | null>(null);
-  const [accounts, setAccounts] = useState<ThunderConfig['accounts']>({});
+  const [accounts, setAccounts] = useState<Record<string, LimitedAccount>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [authCode, setAuthCode] = useState<string>('');
   const [seconds, setSeconds] = useState<number>(0);
@@ -32,7 +32,10 @@ export function AccountProvider({ children }: { children: ReactNode }) {
         setCurrentAccountState(currentResult);
       }
     }
+
     setIsLoading(false);
+
+    return result;
   };
 
   const setCurrentAccount = async (accountId: string | null) => {
@@ -41,12 +44,12 @@ export function AccountProvider({ children }: { children: ReactNode }) {
       return true;
     }
 
-    await loadAccounts();
+    const freshAccounts = await loadAccounts();
 
-    if (accountId && accounts && accounts[accountId]) {
+    if (accountId && freshAccounts && freshAccounts[accountId]) {
       const result = await window.electron.setCurrentAccount(accountId);
       if (result) {
-        setCurrentAccountState(accounts[accountId]);
+        setCurrentAccountState(freshAccounts[accountId]);
       }
 
       return true;
