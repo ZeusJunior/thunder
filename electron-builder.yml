@@ -24,8 +24,6 @@ mac:
   target:
     - target: dmg
       arch: [universal]
-    - target: zip
-      arch: [universal]
   icon: resources/icon.icns
   category: public.app-category.utilities
 
