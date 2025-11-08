@@ -7,7 +7,7 @@ import CopyIcon from '../components/Icons/Copy';
 export default function HomePage() {
   const { currentAccount, isLoading, seconds, authCode } = useAccount();
 
-  if (isLoading) {
+  if (isLoading || !currentAccount) {
     return (
       <>
         <Head>
