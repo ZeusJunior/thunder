@@ -75,14 +75,14 @@ jobs:
           ## Installation
           
           ### Windows
-          Download and run `Thunder-Authenticator-Setup-${{ steps.version.outputs.version_number }}.exe`
+          Download and run [Thunder-Authenticator-Setup-${{ steps.version.outputs.version_number }}.exe](https://github.com/ZeusJunior/thunder/releases/download/v${{ steps.version.outputs.version_number }}/Thunder-Authenticator-Setup-${{ steps.version.outputs.version_number }}.exe)
 
           ### macOS
-          Download and open `Thunder-Authenticator-${{ steps.version.outputs.version_number }}-universal.dmg`
+          Download and open [Thunder-Authenticator-${{ steps.version.outputs.version_number }}-universal.dmg](https://github.com/ZeusJunior/thunder/releases/download/v${{ steps.version.outputs.version_number }}/Thunder-Authenticator-${{ steps.version.outputs.version_number }}-universal.dmg)
           
           ### Linux
-          Download `Thunder-Authenticator-${{ steps.version.outputs.version_number }}-linux.AppImage`
-          
+          Download and execute [Thunder-Authenticator-${{ steps.version.outputs.version_number }}-linux.AppImage](https://github.com/ZeusJunior/thunder/releases/download/v${{ steps.version.outputs.version_number }}/Thunder-Authenticator-${{ steps.version.outputs.version_number }}-linux.AppImage)
+
           ## Changes
           
           EOF
