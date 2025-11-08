@@ -21,6 +21,9 @@ on:
 jobs:
   version-and-release:
     runs-on: ubuntu-latest
+    outputs:
+      new_version: ${{ steps.version.outputs.new_version }}
+      version_number: ${{ steps.version.outputs.version_number }}
     
     steps:
       - name: Check out Git repository
@@ -62,13 +65,72 @@ jobs:
           git push origin master
           git push origin ${{ steps.version.outputs.new_version }}
 
-      - name: Create GitHub Release
+      - name: Create GitHub Release (draft)
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.version.outputs.new_version }}
           name: Release ${{ steps.version.outputs.new_version }}
-          draft: false
+          draft: true
           prerelease: ${{ inputs.prerelease }}
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # copy of release job from release.yml, modified to depend on version-and-release job
+  # keeping both so a manual push of tags can still trigger releases
+  build-and-release:
+    needs: version-and-release
+    runs-on: ${{ matrix.os }}
+    
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            platform: linux
+            build_script: build:linux
+          - os: windows-latest
+            platform: windows
+            build_script: build:win64
+          - os: macos-latest
+            platform: macos
+            build_script: build:mac:universal
+
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ needs.version-and-release.outputs.new_version }}
+
+      - name: Install Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: yarn
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Build and publish Electron app
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: yarn run ${{ matrix.build_script }} -- --publish=always
+
+      - name: Upload build artifacts (backup)
+        uses: actions/upload-artifact@v5
+        with:
+          name: release-${{ matrix.platform }}
+          path: dist/
+          retention-days: 30
+
+  # publish-release:
+  #   needs: [version-and-release, build-and-release]
+  #   runs-on: ubuntu-latest
+    
+  #   steps:
+  #     - name: Publish GitHub Release
+  #       uses: softprops/action-gh-release@v2
+  #       with:
+  #         tag_name: ${{ needs.version-and-release.outputs.new_version }}
+  #         draft: false
+  #       env:
+  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
