@@ -65,11 +65,70 @@ jobs:
           git push origin master
           git push origin ${{ steps.version.outputs.new_version }}
 
+      - name: Generate Release Notes
+        id: release_notes
+        run: |
+          # Get previous tag for comparison
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")
+          
+          cat > release_notes.md << 'EOF'
+          ## Installation
+          
+          ### Windows
+          Download and run `Thunder-Authenticator-Setup-${{ steps.version.outputs.version_number }}.exe`
+
+          ### macOS
+          Download and open `Thunder-Authenticator-${{ steps.version.outputs.version_number }}-universal.dmg`
+          
+          ### Linux
+          Download `Thunder-Authenticator-${{ steps.version.outputs.version_number }}-linux.AppImage`
+          
+          ## Changes
+          
+          EOF
+          
+          # Get commits since last tag and categorize them
+          if [ -n "$PREV_TAG" ]; then
+            echo "Generating changelog from $PREV_TAG to ${{ steps.version.outputs.new_version }}"
+            
+            # Features (feat:, add:, new:)
+            FEATURES=$(git log --pretty=format:"- %s" $PREV_TAG..HEAD | grep -E "^- (feat|add|new):" | sed 's/^- (feat|add|new): /- /' || true)
+            if [ -n "$FEATURES" ]; then
+              echo "### New Features" >> release_notes.md
+              echo "$FEATURES" >> release_notes.md
+              echo "" >> release_notes.md
+            fi
+            
+            # Bug fixes (fix:, bug:)
+            FIXES=$(git log --pretty=format:"- %s" $PREV_TAG..HEAD | grep -E "^- (fix|bug):" | sed 's/^- (fix|bug): /- /' || true)
+            if [ -n "$FIXES" ]; then
+              echo "### Bug Fixes" >> release_notes.md
+              echo "$FIXES" >> release_notes.md
+              echo "" >> release_notes.md
+            fi
+            
+            # Other commits
+            OTHER=$(git log --pretty=format:"- %s" $PREV_TAG..HEAD | grep -vE "^- (feat|add|new|fix|bug|chore):" || true)
+            if [ -n "$OTHER" ]; then
+              echo "### Other Changes" >> release_notes.md
+              echo "$OTHER" >> release_notes.md
+              echo "" >> release_notes.md
+            fi
+          fi
+
+          echo "---" >> release_notes.md
+          
+          # Save release notes for later use
+          echo "RELEASE_NOTES<<EOF" >> $GITHUB_OUTPUT
+          cat release_notes.md >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
       - name: Create GitHub Release (draft)
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.version.outputs.new_version }}
           name: Release ${{ steps.version.outputs.new_version }}
+          body: ${{ steps.release_notes.outputs.RELEASE_NOTES }}
           draft: true
           prerelease: ${{ inputs.prerelease }}
           generate_release_notes: true
