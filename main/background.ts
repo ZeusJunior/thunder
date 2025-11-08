@@ -1,9 +1,19 @@
 import path from 'path';
 import { app, ipcMain, shell } from 'electron';
 import serve from 'electron-serve';
-import { createWindow, getCurrentAccount } from './helpers';
+import { createWindow, getCurrentAccount, getDebugInfo, configFileExists, getAllAccounts, setCurrentAccount } from './helpers';
 import SteamCommunity from 'steamcommunity';
-import { loginAgain } from './helpers/steam';
+import { addAuthenticator, finalizeAuthenticator, getAuthCode, loginAgain, refreshProfile } from './helpers/steam';
+import { createEncryptedStore, initializeStore } from './store';
+import { IpcHandlers } from './types';
+
+// Type-safe IPC handler helper
+function handleIpc<K extends keyof IpcHandlers>(
+  channel: K,
+  handler: (event: Electron.IpcMainInvokeEvent, ...args: Parameters<IpcHandlers[K]>) => ReturnType<IpcHandlers[K]>
+) {
+  ipcMain.handle(channel, handler);
+}
 
 
 if (app.isPackaged) {
@@ -59,8 +69,6 @@ ipcMain.on(
   }
 );
 
-// Password authentication IPC handlers
-
 ipcMain.on('open-steam-window', async (event, { url }: { url: string }) => {
   const account = getCurrentAccount(false);
   if (!account) {
@@ -94,8 +102,7 @@ ipcMain.on('open-steam-window', async (event, { url }: { url: string }) => {
     };
 
     if (loggedIn) {
-      proceed();
-      return;
+      return proceed();
     }
 
     // If we're not logged in, check if we have a refresh token to re-authenticate
@@ -108,7 +115,7 @@ ipcMain.on('open-steam-window', async (event, { url }: { url: string }) => {
       refreshToken: account.refreshToken,
     })
       .then(() => {
-        proceed();
+        return proceed();
       })
       .catch(() => {
         event.reply('login-required');
@@ -116,4 +123,68 @@ ipcMain.on('open-steam-window', async (event, { url }: { url: string }) => {
 
     return;
   });
+});
+
+handleIpc('debug-info', async () => {
+  return getDebugInfo();
+});
+
+// Config handlers
+handleIpc('config-exists', async () => {
+  return configFileExists();
+});
+
+handleIpc('config-create', async (event, password) => {
+  return createEncryptedStore(password);
+});
+
+handleIpc('config-initialize', async (event, password) => {
+  return initializeStore(password);
+});
+
+// Account handlers
+handleIpc('get-all-accounts', async () => {
+  return getAllAccounts();
+});
+
+handleIpc('get-current-account', async () => {
+  return getCurrentAccount();
+});
+
+handleIpc('set-current-account', async (event, accountId) => {
+  return setCurrentAccount(accountId);
+});
+
+handleIpc('refresh-profile', async (event, accountId) => {
+  return await refreshProfile(accountId);
+});
+
+// Steam handlers
+handleIpc('add-authenticator', async (event, options) => {
+  return addAuthenticator(options);
+});
+
+handleIpc('finalize-authenticator', async (event, steamId, activationCode) => {
+  return finalizeAuthenticator(steamId, activationCode);
+});
+
+handleIpc('login-again', async (event, password) => {
+  const account = getCurrentAccount(false);
+  if (!account) {
+    throw new Error('No current account set');
+  }
+
+  return loginAgain({
+    accountName: account.accountName,
+    password,
+    twoFactorCode: getAuthCode(account.sharedSecret!),
+  });
+});
+
+handleIpc('get-auth-code', async () => {
+  const account = getCurrentAccount(false);
+  if (!account || !account.sharedSecret) {
+    return '';
+  }
+  return getAuthCode(account.sharedSecret);
 });

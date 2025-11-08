@@ -14,9 +14,13 @@ function MyApp({ Component, pageProps }: AppProps) {
   const [hasAccountSelected, setHasAccountSelected] = useState(false);
 
   useEffect(() => {
-    const configExists = window.electron.config.exists();
-    setIsFirstTime(!configExists);
-    setIsLoading(false);
+    const fetchConfigExists = async () => {
+      const exists = await window.electron.config.exists();
+      setIsFirstTime(!exists);
+      setIsLoading(false);
+      return exists;
+    };
+    fetchConfigExists();
   }, []);
 
   useEffect(() => {
@@ -25,8 +29,8 @@ function MyApp({ Component, pageProps }: AppProps) {
     }
   }, [isAuthenticated]);
 
-  const checkCurrentAccount = () => {
-    const result = window.electron.getCurrentAccount();
+  const checkCurrentAccount = async () => {
+    const result = await window.electron.getCurrentAccount();
     if (result) {
       setHasAccountSelected(true);
     }

@@ -28,13 +28,14 @@ export default function AccountSelector({ onAccountSelected = () => { } }: Accou
   };
 
   const handleSelectAccount = useCallback((accountId: string) => {
-    const result = setCurrentAccount(accountId);
-    if (result) {
-      onAccountSelected();
-      return;
-    }
-
-    setError('Failed to select account');
+    setCurrentAccount(accountId)
+      .then((result) => {
+        if (result) onAccountSelected();
+      })
+      .catch((err) => {
+        console.error('Error selecting account:', err);
+        setError('Failed to select account');
+      });
   }, [onAccountSelected, setCurrentAccount]);
 
   const handleImportSDA = (e: React.FormEvent) => {

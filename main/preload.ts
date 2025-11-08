@@ -1,16 +1,21 @@
 import { contextBridge, ipcRenderer } from 'electron';
-import { configFileExists, getDebugInfo } from './helpers';
-import { createEncryptedStore, initializeStore } from './store';
-import { getAllAccounts, getCurrentAccount, setCurrentAccount } from './helpers/store';
-import { addAuthenticator, finalizeAuthenticator, getAuthCode, loginAgain, refreshProfile } from './helpers/steam';
 import SteamCommunity from 'steamcommunity';
+import { IpcHandlers } from './types';
+
+// Type-safe IPC invoke helper
+function invoke<K extends keyof IpcHandlers>(
+  channel: K,
+  ...args: Parameters<IpcHandlers[K]>
+): Promise<Awaited<ReturnType<IpcHandlers[K]>>> {
+  return ipcRenderer.invoke(channel, ...args) as Promise<Awaited<ReturnType<IpcHandlers[K]>>>;
+}
 
 const handler = {
-  getDebugInfo: () => getDebugInfo(),
+  getDebugInfo: () => invoke('debug-info'),
   config: {
-    exists: () => configFileExists(),
-    create: (password: string) => createEncryptedStore(password),
-    initialize: (password: string) => initializeStore(password),
+    exists: () => invoke('config-exists'),
+    create: (password: string) => invoke('config-create', password),
+    initialize: (password: string) => invoke('config-initialize', password),
   },
   openWindow: (url: string, external: boolean) => {
     ipcRenderer.send('open-new-window', { url, external });
@@ -21,34 +26,22 @@ const handler = {
 
   addAuthenticator: (
     options: Pick<SteamCommunity.LoginOptions, 'accountName' | 'password' | 'authCode'>
-  ) => addAuthenticator(options),
-  finalizeAuthenticator: (steamId: string, activationCode: string) => finalizeAuthenticator(steamId, activationCode),
+  ) => invoke('add-authenticator', options),
+  finalizeAuthenticator: (steamId: string, activationCode: string) =>
+    invoke('finalize-authenticator', steamId, activationCode),
 
-  getAllAccounts: () => getAllAccounts(),
-  getCurrentAccount: () => getCurrentAccount(),
-  setCurrentAccount: (accountId: string) => setCurrentAccount(accountId),
+  getAllAccounts: () => invoke('get-all-accounts'),
+  getCurrentAccount: () => invoke('get-current-account'),
+  setCurrentAccount: (accountId: string) => invoke('set-current-account', accountId),
   refreshProfile: (accountId: string) => {
-    return refreshProfile(accountId).catch(() => false);
+    return invoke('refresh-profile', accountId);
   },
 
   loginAgain: async (password: string) => {
-    const account = getCurrentAccount(false);
-    if (!account) {
-      throw new Error('No current account set');
-    }
-
-    return loginAgain({
-      accountName: account.accountName,
-      password,
-      twoFactorCode: getAuthCode(account.sharedSecret!),
-    });
+    return invoke('login-again', password);
   },
   getAuthCode: () => {
-    const account = getCurrentAccount(false);
-    if (!account || !account.sharedSecret) {
-      return '';
-    }
-    return getAuthCode(account.sharedSecret);
+    return invoke('get-auth-code');
   },
 
   events: {

@@ -190,7 +190,7 @@ export function updateAccount(accountId: string, data: AccountUpdateData): boole
 export function getDebugInfo() {
   const isProd = app.isPackaged;
   if (isProd) {
-    return { error: 'Debug info is only available in development mode' };
+    throw new Error('Debug info is only available in development mode');
   }
 
   const store = getStore();

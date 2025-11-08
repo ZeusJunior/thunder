@@ -25,7 +25,7 @@ export default function AccountList({ onSelect }: { onSelect: (accountId: string
   const refreshProfile = async (accountId: string) => {
     const result = await window.electron.refreshProfile(accountId);
     if (result) {
-      return loadAccounts();
+      return await loadAccounts();
     }
 
     setError('Failed to refresh profile');
