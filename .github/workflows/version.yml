@@ -92,7 +92,7 @@ jobs:
             echo "Generating changelog from $PREV_TAG to ${{ steps.version.outputs.new_version }}"
             
             # Features (feat:, add:, new:)
-            FEATURES=$(git log --pretty=format:"- %s" $PREV_TAG..HEAD | grep -E "^- (feat|add|new):" | sed 's/^- (feat|add|new): /- /' || true)
+            FEATURES=$(git log --pretty=format:"%s" $PREV_TAG..HEAD | grep -E "^(\[skip ci\] )?(feat|add|new):" | sed -E 's/^(\[skip ci\] )?(feat|add|new): /- /' || true)
             if [ -n "$FEATURES" ]; then
               echo "### New Features" >> release_notes.md
               echo "$FEATURES" >> release_notes.md
@@ -100,7 +100,7 @@ jobs:
             fi
             
             # Bug fixes (fix:, bug:)
-            FIXES=$(git log --pretty=format:"- %s" $PREV_TAG..HEAD | grep -E "^- (fix|bug):" | sed 's/^- (fix|bug): /- /' || true)
+            FIXES=$(git log --pretty=format:"%s" $PREV_TAG..HEAD | grep -E "^(\[skip ci\] )?(fix|bug):" | sed -E 's/^(\[skip ci\] )?(fix|bug): /- /' || true)
             if [ -n "$FIXES" ]; then
               echo "### Bug Fixes" >> release_notes.md
               echo "$FIXES" >> release_notes.md
@@ -108,7 +108,7 @@ jobs:
             fi
             
             # Other commits
-            OTHER=$(git log --pretty=format:"- %s" $PREV_TAG..HEAD | grep -vE "^- (feat|add|new|fix|bug|chore):" || true)
+            OTHER=$(git log --pretty=format:"%s" $PREV_TAG..HEAD | grep -vE "^(\[skip ci\] )?(feat|add|new|fix|bug|chore):" || true)
             if [ -n "$OTHER" ]; then
               echo "### Other Changes" >> release_notes.md
               echo "$OTHER" >> release_notes.md
