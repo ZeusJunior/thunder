@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import HomeIcon from './Icons/Home';
 import GithubIcon from './Icons/Github';
@@ -7,6 +7,7 @@ import Image from 'next/image';
 import ArrowLRIcon from './Icons/ArrowsLR';
 import Popup from './Popup/Popup';
 import ExternalIcon from './Icons/External';
+import DocumentCheckIcon from './Icons/DocumentCheck';
 
 export default function Sidebar() {
   const { currentAccount } = useAccount();
@@ -17,11 +18,18 @@ export default function Sidebar() {
 
   const handleOpenSteam = (url: string) => {
     window.electron.openSteamWindow(url);
+  };
+
+  useEffect(() => {
     // Perhaps our session expired, listen for event
     window.electron.events.onLoginRequired(() => {
       setIsPopupOpen(true);
     });
-  };
+
+    return () => {
+      window.electron.events.removeOnLoginRequired();
+    };
+  }, []);
 
   const handlePasswordSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,8 +74,16 @@ export default function Sidebar() {
                 Home
               </Link>
             </li>
-            {/* Button to open https://steamcommunity.com in a new thunder tab with the cookies of the current account */}
             <li>
+              <Link
+                href="/confirmations"
+                className="flex items-center px-3 py-2 rounded-lg hover:bg-gray-800 transition-colors duration-200"
+              >
+                <DocumentCheckIcon className="w-5 h-5 mr-2" />
+                Confirmations
+              </Link>
+            </li>
+            <li className="border-t border-gray-700 pt-1">
               <Link
                 href="#"
                 onClick={() => handleOpenSteam('https://steamcommunity.com')}
@@ -75,6 +91,16 @@ export default function Sidebar() {
               >
                 <ExternalIcon className="w-5 h-5 mr-2" />
                 <span className="mr-2">Steam</span>
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="#"
+                onClick={() => handleOpenSteam('https://steamcommunity.com/my/tradeoffers')}
+                className="flex items-center px-3 py-2 rounded-lg hover:bg-gray-800 transition-colors duration-200"
+              >
+                <ExternalIcon className="w-5 h-5 mr-2" />
+                <span className="mr-2">Trade offers</span>
               </Link>
             </li>
           </ul>
@@ -137,7 +163,7 @@ export default function Sidebar() {
       {/* TODO: Refactor popup to manage its own state more. Doesn't feel right to have password as part of sidebar state */}
       {isPopupOpen && (
         <Popup
-          title={`Session expired. Please enter the password for "${currentAccount?.personaName}" to login again.`}
+          title={`Session expired. Please enter the password for "${currentAccount?.personaName}" to login again, then retry.`}
           close={() => setIsPopupOpen(false)}
         >
 
@@ -186,7 +212,7 @@ export default function Sidebar() {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    Logging...
+                    Logging in...
                   </span>
                 ) : (
                   'Login'
