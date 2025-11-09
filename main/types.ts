@@ -101,4 +101,5 @@ export interface IpcHandlers {
   'import-mafile': (filePath: string) => Promise<string>;
   'get-confirmations': () => Promise<Confirmation[]>;
   'respond-to-confirmation': (id: number, key: string, accept: boolean) => Promise<void>;
+  'accept-all-confirmations': () => Promise<void>;
 }

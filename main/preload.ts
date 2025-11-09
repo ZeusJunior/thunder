@@ -57,6 +57,9 @@ const handler = {
   respondToConfirmation: (id: number, key: string, accept: boolean) => {
     return invoke('respond-to-confirmation', id, key, accept);
   },
+  acceptAllConfirmations: () => {
+    return invoke('accept-all-confirmations');
+  },
 
   events: {
     onLoginRequired: (callback: () => void) => {

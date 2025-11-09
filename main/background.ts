@@ -336,3 +336,26 @@ handleIpc('respond-to-confirmation', async (event, id: number, key: string, acce
     });
   });
 });
+
+handleIpc('accept-all-confirmations', async () => {
+  const account = getCurrentAccount(false);
+  if (!account) {
+    throw new Error('No current account set');
+  }
+
+  const community = new SteamCommunity();
+  community.setCookies(account.cookies || []);
+
+  return new Promise((resolve, reject) => {
+    const confTime = time();
+    const confKey = getConfirmationKey(account.identitySecret, confTime, 'conf');
+    const allowKey = getConfirmationKey(account.identitySecret, confTime, 'allow');
+    community.acceptAllConfirmations(confTime, confKey, allowKey, (err) => {
+      if (err) {
+        return reject(err);
+      }
+
+      resolve();
+    });
+  });
+});
