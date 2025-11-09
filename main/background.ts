@@ -254,10 +254,6 @@ handleIpc('import-mafile', async (event, filePath) => {
     }
   };
 
-  if ('RefreshToken' in maFileData.Session && maFileData.Session.RefreshToken) {
-    accountData.refreshToken = maFileData.Session.RefreshToken;
-  }
-
   // Add the account
   const success = addAccount(maFileData.Session.SteamID, accountData);
 
