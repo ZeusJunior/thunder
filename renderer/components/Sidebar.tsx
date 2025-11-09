@@ -83,7 +83,7 @@ export default function Sidebar() {
                 Confirmations
               </Link>
             </li>
-            <li>
+            <li className="border-t border-gray-700 pt-1">
               <Link
                 href="#"
                 onClick={() => handleOpenSteam('https://steamcommunity.com')}
@@ -91,6 +91,16 @@ export default function Sidebar() {
               >
                 <ExternalIcon className="w-5 h-5 mr-2" />
                 <span className="mr-2">Steam</span>
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="#"
+                onClick={() => handleOpenSteam('https://steamcommunity.com/my/tradeoffers')}
+                className="flex items-center px-3 py-2 rounded-lg hover:bg-gray-800 transition-colors duration-200"
+              >
+                <ExternalIcon className="w-5 h-5 mr-2" />
+                <span className="mr-2">Trade offers</span>
               </Link>
             </li>
           </ul>
