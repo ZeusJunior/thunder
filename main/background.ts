@@ -5,8 +5,9 @@ import { createWindow, getCurrentAccount, getDebugInfo, configFileExists, getAll
 import SteamCommunity from 'steamcommunity';
 import { addAuthenticator, finalizeAuthenticator, getAuthCode, loginAgain, refreshProfile } from './helpers/steam';
 import { createEncryptedStore, initializeStore } from './store';
-import { Account, IpcHandlers, MaFileData } from './types';
+import { Account, Confirmation, IpcHandlers, MaFileData } from './types';
 import { readFile } from 'fs/promises';
+import { getConfirmationKey, time } from 'steam-totp';
 
 // Type-safe IPC handler helper
 function handleIpc<K extends keyof IpcHandlers>(
@@ -262,4 +263,76 @@ handleIpc('import-mafile', async (event, filePath) => {
   }
 
   return maFileData.Session.SteamID;
+});
+
+handleIpc('get-confirmations', async (event) => {
+  const account = getCurrentAccount(false);
+  if (!account) {
+    throw new Error('No current account set');
+  }
+
+  const community = new SteamCommunity();
+  community.setCookies(account.cookies || []);
+
+  return new Promise((resolve, reject) => {
+    community.loggedIn(async (err, loggedIn) => {
+      if (err) {
+        event.sender.send('login-required');
+        return resolve([]);
+      }
+
+      const proceed = async () => {
+        community.getConfirmations(time(), getConfirmationKey(account.identitySecret, time(), 'conf'), async (err, confirmations) => {
+          if (err) {
+            return reject(err);
+          }
+
+          return resolve(confirmations as unknown as Confirmation[]);
+        });
+      };
+
+      if (loggedIn) {
+        return proceed();
+      }
+
+      // If we're not logged in, check if we have a refresh token to re-authenticate
+      if (!account?.refreshToken) {
+        event.sender.send('login-required');
+        return resolve([]);
+      }
+
+      loginAgain({
+        refreshToken: account.refreshToken,
+      })
+        .then(() => {
+          return proceed();
+        })
+        .catch(() => {
+          event.sender.send('login-required');
+          return resolve([]);
+        });
+    });
+  });
+});
+
+handleIpc('respond-to-confirmation', async (event, id: number, key: string, accept: boolean) => {
+  const account = getCurrentAccount(false);
+  if (!account) {
+    throw new Error('No current account set');
+  }
+
+  const community = new SteamCommunity();
+  community.setCookies(account.cookies || []);
+
+  return new Promise((resolve, reject) => {
+    const confTime = time();
+    const confKey = getConfirmationKey(account.identitySecret, confTime, accept ? 'allow' : 'cancel');
+    community.respondToConfirmation(id, key, confTime, confKey, accept, (err) => {
+      if (err) {
+        return reject(err);
+      }
+
+      resolve();
+    });
+  });
 });

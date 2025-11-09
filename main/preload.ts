@@ -51,12 +51,22 @@ const handler = {
     return invoke('import-mafile', filePath);
   },
 
+  getConfirmations: () => {
+    return invoke('get-confirmations');
+  },
+  respondToConfirmation: (id: number, key: string, accept: boolean) => {
+    return invoke('respond-to-confirmation', id, key, accept);
+  },
+
   events: {
     onLoginRequired: (callback: () => void) => {
       ipcRenderer.on('login-required', () => {
         callback();
       });
     },
+    removeOnLoginRequired: () => {
+      ipcRenderer.removeAllListeners('login-required');
+    }
   }
 };
 

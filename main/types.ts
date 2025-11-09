@@ -1,5 +1,6 @@
 import SteamUser from 'steam-user';
 import SteamCommunity from 'steamcommunity';
+import CConfirmation from 'steamcommunity/classes/CConfirmation';
 
 export interface ThunderConfig {
   initialized: boolean;
@@ -12,9 +13,9 @@ export interface Account {
   id64: string;
   personaName: string;
   accountName: string;
-  sharedSecret?: string;
-  identitySecret?: string;
-  recoveryCode?: string;
+  sharedSecret: string;
+  identitySecret: string;
+  recoveryCode: string;
   avatarUrl: string;
 
   // Steam login stuff
@@ -79,6 +80,9 @@ interface AddAuthenticatorSuccess {
   recoveryCode: string;
 }
 
+export type Confirmation = Omit<CConfirmation, 'getOfferID' | 'respond'> & {
+  sending: string;
+};
 
 export interface IpcHandlers {
   'debug-info': () => Promise<DebugInfo | null>;
@@ -95,4 +99,6 @@ export interface IpcHandlers {
   'get-auth-code': () => Promise<string>;
   'show-mafile-dialog': () => Promise<string | null>;
   'import-mafile': (filePath: string) => Promise<string>;
+  'get-confirmations': () => Promise<Confirmation[]>;
+  'respond-to-confirmation': (id: number, key: string, accept: boolean) => Promise<void>;
 }
