@@ -2,6 +2,7 @@ import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { useAccount } from '../../context/AccountContext';
 import ReloadIcon from '../Icons/Reload';
+import { ErrorMessage } from '../ErrorMessage';
 
 export default function AccountList({ onSelect }: { onSelect: (accountId: string) => void }) {
   const { accounts, isLoading, loadAccounts } = useAccount();
@@ -74,11 +75,7 @@ export default function AccountList({ onSelect }: { onSelect: (accountId: string
         </div>
       )}
 
-      {error && (
-        <div className="mb-4 bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md">
-          {error}
-        </div>
-      )}
+      {error && (<ErrorMessage message={error} />)}
 
       {/* Accounts List */}
       <div className="space-y-2">

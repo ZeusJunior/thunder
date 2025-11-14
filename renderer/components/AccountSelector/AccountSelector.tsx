@@ -5,6 +5,8 @@ import AccountList from './AccountList';
 import NewAuthenticator from './Forms/NewAuthenticator';
 import ImportSDA from './Forms/ImportSDA';
 import ImportOptions from './ImportOptions';
+import { PageContainer } from '../Layout/PageContainer';
+import { ErrorMessage } from '../ErrorMessage';
 
 interface AccountSelectorProps {
   onAccountSelected?: () => void;
@@ -52,9 +54,9 @@ export default function AccountSelector({ onAccountSelected = () => { } }: Accou
   return (
     <>
       <Head>
-        <title>{isFirstAccount ? 'Add your first account - Thunder' : 'Select Account - Thunder'}</title>
+        <title>{isFirstAccount ? 'Add your first account' : 'Select account'} - Thunder</title>
       </Head>
-      <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <PageContainer>
         <div className="max-w-md mx-auto">
           <div className="text-center mb-8">
             <h2 className="text-3xl font-extrabold text-gray-900">
@@ -67,11 +69,7 @@ export default function AccountSelector({ onAccountSelected = () => { } }: Accou
             </p>
           </div>
 
-          {error && (
-            <div className="mb-4 bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md">
-              {error}
-            </div>
-          )}
+          {error && (<ErrorMessage message={error} />)}
 
           {!addAccountMode ? (
             <div className="space-y-4">
@@ -97,7 +95,7 @@ export default function AccountSelector({ onAccountSelected = () => { } }: Accou
             </div>
           )}
         </div>
-      </div>
+      </PageContainer>
     </>
   );
 }
