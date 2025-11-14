@@ -20,6 +20,7 @@
   "dependencies": {
     "electron-serve": "^3.0.0",
     "electron-store": "^8.2.0",
+    "electron-updater": "^6.6.2",
     "steam-totp": "^2.1.2",
     "steam-user": "^5.2.3",
     "steamcommunity": "^3.49.0",
