@@ -27,9 +27,9 @@ if (app.isPackaged) {
 
 (async () => {
   await app.whenReady();
-  
+
   let updateWindow: Electron.BrowserWindow | null = null;
-  
+
   const createUpdateWindow = () => {
     updateWindow = createWindow('update', {
       width: 400,
@@ -45,7 +45,6 @@ if (app.isPackaged) {
   };
 
   autoUpdater.autoDownload = false;
-  autoUpdater.forceDevUpdateConfig = true;
   const result = await autoUpdater.checkForUpdates();
 
   // If there's an update available, show the update window and download
@@ -61,7 +60,7 @@ if (app.isPackaged) {
 
     if (choice === 0) {
       createUpdateWindow();
-      
+
       // Set up progress tracking
       autoUpdater.on('download-progress', (progressObj) => {
         if (updateWindow && !updateWindow.isDestroyed()) {
@@ -78,10 +77,10 @@ if (app.isPackaged) {
           if (updateWindow && !updateWindow.isDestroyed()) {
             updateWindow.close();
           }
-          
+
           const installChoice = dialog.showMessageBoxSync({
             type: 'question',
-            buttons: ['Install & Restart', 'Later'],
+            buttons: ['Install and Restart', 'Later'],
             defaultId: 0,
             title: 'Update ready',
             message: 'The update has been downloaded. Install and restart now?'
