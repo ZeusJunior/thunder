@@ -8,6 +8,8 @@ import { createEncryptedStore, initializeStore } from './store';
 import { Account, Confirmation, IpcHandlers, MaFileData } from './types';
 import { readFile } from 'fs/promises';
 import { getConfirmationKey, time } from 'steam-totp';
+import { autoUpdater } from 'electron-updater';
+import { DownloadStatusPage } from './html/download-status';
 
 // Type-safe IPC handler helper
 function handleIpc<K extends keyof IpcHandlers>(
@@ -17,7 +19,6 @@ function handleIpc<K extends keyof IpcHandlers>(
   ipcMain.handle(channel, handler);
 }
 
-
 if (app.isPackaged) {
   serve({ directory: 'app' });
 } else {
@@ -26,7 +27,79 @@ if (app.isPackaged) {
 
 (async () => {
   await app.whenReady();
+  
+  let updateWindow: Electron.BrowserWindow | null = null;
+  
+  const createUpdateWindow = () => {
+    updateWindow = createWindow('update', {
+      width: 400,
+      height: 200,
+      frame: false,
+      resizable: false,
+    });
 
+    // Load a simple HTML page for the update progress
+    updateWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(DownloadStatusPage)}`);
+
+    return updateWindow;
+  };
+
+  autoUpdater.autoDownload = false;
+  autoUpdater.forceDevUpdateConfig = true;
+  const result = await autoUpdater.checkForUpdates();
+
+  // If there's an update available, show the update window and download
+  if (result?.updateInfo && result.updateInfo.version !== app.getVersion()) {
+    const choice = dialog.showMessageBoxSync({
+      type: 'info',
+      buttons: ['Download & Install', 'Skip'],
+      defaultId: 0,
+      title: 'Update available',
+      message: `A new version (${app.getVersion()} -> ${result.updateInfo.version}) is available. Download now?`,
+      detail: 'The app will start after the update is installed.'
+    });
+
+    if (choice === 0) {
+      createUpdateWindow();
+      
+      // Set up progress tracking
+      autoUpdater.on('download-progress', (progressObj) => {
+        if (updateWindow && !updateWindow.isDestroyed()) {
+          updateWindow.webContents.executeJavaScript(`
+            document.getElementById('progressBar').style.width = '${progressObj.percent}%';
+            document.getElementById('progressText').textContent = '${Math.round(progressObj.percent)}% (${Math.round(progressObj.bytesPerSecond / 1024 / 1024)} MB/s)';
+          `);
+        }
+      });
+
+      // Wait for download to complete
+      await new Promise<void>((resolve) => {
+        autoUpdater.once('update-downloaded', () => {
+          if (updateWindow && !updateWindow.isDestroyed()) {
+            updateWindow.close();
+          }
+          
+          const installChoice = dialog.showMessageBoxSync({
+            type: 'question',
+            buttons: ['Install & Restart', 'Later'],
+            defaultId: 0,
+            title: 'Update ready',
+            message: 'The update has been downloaded. Install and restart now?'
+          });
+
+          if (installChoice === 0) {
+            autoUpdater.quitAndInstall();
+          } else {
+            resolve();
+          }
+        });
+
+        autoUpdater.downloadUpdate();
+      });
+    }
+  }
+
+  // Create main window after update check/download
   const mainWindow = createWindow('main', {
     width: 1000,
     height: 600,
