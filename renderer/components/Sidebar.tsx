@@ -110,12 +110,12 @@ export default function Sidebar() {
         </nav>
 
         {process.env.NODE_ENV === 'development' && (
-          <div className="p-2">
+          <div className="p-1">
             <Link
               href="/debug"
               className="flex items-center px-3 py-2 rounded-lg hover:bg-gray-800 transition-colors duration-200"
             >
-              Debug Info
+              Debug info
             </Link>
           </div>
         )}
@@ -150,8 +150,8 @@ export default function Sidebar() {
         )}
 
         {/* Bottom Icons */}
-        <div className="p-2 border-t border-gray-700">
-          <div className="flex space-x-2">
+        <div className="p-1 border-t border-gray-700">
+          <div className="flex space-x-1">
             <Link
               href="/settings"
               className="cursor-pointer flex-1 flex items-center justify-center p-2 rounded-lg hover:bg-gray-800 transition-colors duration-200"

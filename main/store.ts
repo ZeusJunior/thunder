@@ -57,3 +57,29 @@ export function createEncryptedStore(password: string) {
 export function getStore() {
   return store;
 }
+
+/**
+ * Verify password is correct for the encrypted store
+ * @param password The encryption password
+ * @returns boolean indicating if the password is correct
+ */
+export function verifyPassword(password: string) {
+  try {
+    const tempStore = new Store({
+      name: 'config',
+      encryptionKey: password,
+    });
+
+    // Verify the store is accessible by trying to read from it
+    const initialized = tempStore.get('initialized');
+    if (!initialized) {
+      // Corrupted config
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error initializing store:', error);
+    return false;
+  }
+}

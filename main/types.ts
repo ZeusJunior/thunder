@@ -97,7 +97,7 @@ export interface IpcHandlers {
   'finalize-authenticator': (steamId: string, activationCode: string) => Promise<true>;
   'login-again': (password: string) => Promise<void>;
   'get-auth-code': () => Promise<string>;
-  'export-account-secrets': () => Promise<{ identitySecret: string; sharedSecret: string }>;
+  'export-account-secrets': (password: string) => Promise<{ identitySecret: string; sharedSecret: string } | { error: string }>;
   'show-mafile-dialog': () => Promise<string | null>;
   'import-mafile': (filePath: string) => Promise<string>;
   'get-confirmations': () => Promise<Confirmation[]>;
