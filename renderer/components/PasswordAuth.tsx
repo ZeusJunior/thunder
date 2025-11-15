@@ -114,6 +114,7 @@ export default function PasswordAuth({ isFirstTime, onAuthenticated }: PasswordA
               type="submit"
               isLoading={isLoading}
               text={isFirstTime ? 'Create password' : 'Unlock'}
+              loadingText={isFirstTime ? 'Setting password...' : 'Unlocking...'}
             />
           </form>
         </div>

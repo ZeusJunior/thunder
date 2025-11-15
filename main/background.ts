@@ -263,6 +263,18 @@ handleIpc('get-auth-code', async () => {
   return getAuthCode(account.sharedSecret);
 });
 
+handleIpc('export-account-secrets', async () => {
+  const account = getCurrentAccount(false);
+  if (!account) {
+    throw new Error('No current account set');
+  }
+
+  return {
+    sharedSecret: account.sharedSecret,
+    identitySecret: account.identitySecret,
+  };
+});
+
 handleIpc('show-mafile-dialog', async () => {
   const result = await dialog.showOpenDialog({
     title: 'Select maFile',

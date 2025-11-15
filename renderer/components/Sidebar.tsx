@@ -8,6 +8,7 @@ import ArrowLRIcon from './Icons/ArrowsLR';
 import Popup from './Popup/Popup';
 import ExternalIcon from './Icons/External';
 import DocumentCheckIcon from './Icons/DocumentCheck';
+import SettingsIcon from './Icons/Settings';
 import { ErrorMessage } from './ErrorMessage';
 import PrimaryButton from './Form/PrimaryButton';
 
@@ -151,6 +152,13 @@ export default function Sidebar() {
         {/* Bottom Icons */}
         <div className="p-2 border-t border-gray-700">
           <div className="flex space-x-2">
+            <Link
+              href="/settings"
+              className="cursor-pointer flex-1 flex items-center justify-center p-2 rounded-lg hover:bg-gray-800 transition-colors duration-200"
+              title="App settings"
+            >
+              <SettingsIcon className="w-5 h-5" />
+            </Link>
             <button
               onClick={() => window.electron.openWindow('https://github.com/ZeusJunior/thunder', true)}
               className="cursor-pointer flex-1 flex items-center justify-center p-2 rounded-lg hover:bg-gray-800 transition-colors duration-200"

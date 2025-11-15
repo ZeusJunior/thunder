@@ -43,6 +43,9 @@ const handler = {
   getAuthCode: () => {
     return invoke('get-auth-code');
   },
+  exportTradingBotSecrets: () => {
+    return invoke('export-account-secrets');
+  },
 
   showMaFileDialog: () => {
     return invoke('show-mafile-dialog');

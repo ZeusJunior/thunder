@@ -25,8 +25,7 @@ export function loginAgain(details: SteamUser.LogOnDetailsNamePass | SteamUser.L
     };
 
     user.on('error', (err) => {
-      // TODO: Figure out specific EResult for invalid/expired refresh token?
-      // TODO: Handle this error better in the UI
+      // TODO: Handle any errors here better in the UI
       console.error('Error re-authenticating:', err);
       return reject(new Error(err.message));
     });
