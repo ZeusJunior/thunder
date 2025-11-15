@@ -3,6 +3,9 @@ import Head from 'next/head';
 import { useAccount } from '../context/AccountContext';
 import ClockIcon from '../components/Icons/Clock';
 import CopyIcon from '../components/Icons/Copy';
+import { PageContainer } from '../components/Layout/PageContainer';
+import { PageHeader } from '../components/Layout/PageHeader';
+import PrimaryButton from '../components/Form/PrimaryButton';
 
 export default function HomePage() {
   const { currentAccount, isLoading, seconds, authCode } = useAccount();
@@ -28,10 +31,8 @@ export default function HomePage() {
       <Head>
         <title>Home - Thunder</title>
       </Head>
-      <div className="p-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-4">
-          Welcome to Thunder Authenticator - {currentAccount.personaName}
-        </h1>
+      <PageContainer>
+        <PageHeader title={`Welcome to Thunder Authenticator - ${currentAccount.personaName}`} />
 
         <div className="max-w-md mx-auto">
           <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-6">
@@ -62,13 +63,11 @@ export default function HomePage() {
                     </div>
                   </div>
 
-                  <button
+                  <PrimaryButton
                     onClick={() => navigator.clipboard.writeText(authCode)}
-                    className="w-full px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors flex items-center justify-center space-x-2 cursor-pointer"
-                  >
-                    <CopyIcon className="w-4 h-4" />
-                    <span>Copy Code</span>
-                  </button>
+                    icon={<CopyIcon className="w-4 h-4" />}
+                    text="Copy code"
+                  />
                 </>
               ) : (
                 <div className="text-gray-500">
@@ -79,7 +78,7 @@ export default function HomePage() {
             </div>
           </div>
         </div>
-      </div>
+      </PageContainer>
     </>
   );
 }

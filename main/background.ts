@@ -4,7 +4,7 @@ import serve from 'electron-serve';
 import { createWindow, getCurrentAccount, getDebugInfo, configFileExists, getAllAccounts, setCurrentAccount, addAccount, accountExists } from './helpers';
 import SteamCommunity from 'steamcommunity';
 import { addAuthenticator, finalizeAuthenticator, getAuthCode, loginAgain, refreshProfile } from './helpers/steam';
-import { createEncryptedStore, initializeStore } from './store';
+import { createEncryptedStore, initializeStore, verifyPassword } from './store';
 import { Account, Confirmation, IpcHandlers, MaFileData } from './types';
 import { readFile } from 'fs/promises';
 import { getConfirmationKey, time } from 'steam-totp';
@@ -261,6 +261,27 @@ handleIpc('get-auth-code', async () => {
     return '';
   }
   return getAuthCode(account.sharedSecret);
+});
+
+handleIpc('export-account-secrets', async (event, password: string) => {
+  try {
+    const passwordValid = verifyPassword(password);
+    if (!passwordValid) {
+      return { error: 'Invalid password' };
+    }
+
+    const account = getCurrentAccount(false);
+    if (!account) {
+      return { error: 'No current account set' };
+    }
+
+    return {
+      sharedSecret: account.sharedSecret,
+      identitySecret: account.identitySecret,
+    };
+  } catch {
+    return { error: 'Invalid password' };
+  }
 });
 
 handleIpc('show-mafile-dialog', async () => {

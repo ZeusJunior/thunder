@@ -1,4 +1,7 @@
 import { useState } from 'react';
+import { ErrorMessage } from '../../ErrorMessage';
+import SecondaryButton from '../../Form/SecondaryButton';
+import PrimaryButton from '../../Form/PrimaryButton';
 
 interface NewAuthenticatorProps {
   onSuccess: (accountId: string) => void;
@@ -57,11 +60,7 @@ export default function ImportSDA({ onSuccess, onCancel }: NewAuthenticatorProps
         </p>
       </div>
 
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <p className="text-sm text-red-600">{error}</p>
-        </div>
-      )}
+      {error && (<ErrorMessage message={error} />)}
 
       <form onSubmit={onSubmit} className="space-y-4">
         <div>
@@ -69,37 +68,25 @@ export default function ImportSDA({ onSuccess, onCancel }: NewAuthenticatorProps
             Select maFile
           </label>
           <div className="mt-1 flex items-center space-x-3">
-            <button
-              type="button"
+            <SecondaryButton
               onClick={handleSelectFile}
-              className="px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-            >
-              Browse Files
-            </button>
-            {selectedFile && (
-              <span className="text-sm text-gray-600 truncate">
-                {selectedFile.split(/[\\/]/).pop()}
-              </span>
-            )}
+              text={selectedFile ? selectedFile.split(/[\\/]/).pop() as string : 'Browse files'}
+            />
           </div>
         </div>
 
         <div className="flex space-x-3">
-          <button
+          <PrimaryButton
             type="submit"
             disabled={!selectedFile || isLoading}
-            className="flex-1 px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-gray-300 disabled:cursor-not-allowed"
-          >
-            {isLoading ? 'Importing...' : 'Import from SDA'}
-          </button>
-          <button
-            type="button"
+            isLoading={isLoading}
+            text='Import from SDA'
+            loadingText='Importing...'
+          />
+          <SecondaryButton
             onClick={onCancel}
-            disabled={isLoading}
-            className="flex-1 px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
-          >
-            Cancel
-          </button>
+            text='Cancel'
+          />
         </div>
       </form>
     </>

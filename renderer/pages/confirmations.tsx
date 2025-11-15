@@ -3,6 +3,9 @@ import Head from 'next/head';
 import Image from 'next/image';
 import { Confirmation } from '../../main/types';
 import Popup from '../components/Popup/Popup';
+import { PageContainer } from '../components/Layout/PageContainer';
+import { PageHeader } from '../components/Layout/PageHeader';
+import { ErrorMessage } from '../components/ErrorMessage';
 
 interface LoadingConfirmations extends Confirmation {
   isLoading?: boolean;
@@ -77,11 +80,8 @@ export default function ConfirmationsPage() {
       <Head>
         <title>Confirmations - Thunder</title>
       </Head>
-      <div className="p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-2xl font-bold text-gray-900">
-            Confirmations
-          </h1>
+      <PageContainer>
+        <PageHeader title="Confirmations">
           {!isLoading && confirmations.length > 0 && (
             <button
               onClick={() => setShowAcceptAllModal(true)}
@@ -102,14 +102,9 @@ export default function ConfirmationsPage() {
               )}
             </button>
           )}
-        </div>
+        </PageHeader>
 
-        {/* TODO: Make error alert reusable */}
-        {error && (
-          <div className="bg-red-100 text-red-800 p-4 rounded-lg mb-4">
-            {error}
-          </div>
-        )}
+        {error && (<ErrorMessage message={error} />)}
 
         {isLoading && (
           <div className="min-h-screen flex items-center justify-center">
@@ -192,14 +187,14 @@ export default function ConfirmationsPage() {
             <div className="flex justify-end">
               <button
                 onClick={handleAcceptAll}
-                className="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors"
+                className="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors cursor-pointer"
               >
                 Accept all
               </button>
             </div>
           </Popup>
         )}
-      </div>
+      </PageContainer>
     </>
   );
 }

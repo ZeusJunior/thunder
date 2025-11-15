@@ -1,4 +1,7 @@
 import { useState } from 'react';
+import { ErrorMessage } from '../../ErrorMessage';
+import SecondaryButton from '../../Form/SecondaryButton';
+import PrimaryButton from '../../Form/PrimaryButton';
 
 interface NewAuthenticatorProps {
   onSuccess: (accountId: string) => void;
@@ -47,11 +50,7 @@ export default function NewAuthenticator({ onSuccess, onCancel }: NewAuthenticat
         )
       }
 
-      {error && (
-        <div className="mb-4 bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md">
-          {error}
-        </div>
-      )}
+      {error && (<ErrorMessage message={error} />)}
 
       {getStepContent()}
     </>
@@ -167,24 +166,16 @@ function LoginStep({ onCancel, setError, setSteamId, setRecoveryCode, nextStep }
       )}
 
       <div className="flex space-x-3">
-        <button
+        <PrimaryButton
           type="submit"
-          disabled={isLoading}
-          className="flex-1 px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-        >
-          {isLoading ? (
-            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-300 mx-auto"></div>
-          ) : (
-            'Next'
-          )}
-        </button>
-        <button
-          type="button"
+          isLoading={isLoading}
+          text='Next'
+          loadingText='Logging in...'
+        />
+        <SecondaryButton
           onClick={onCancel}
-          className="flex-1 px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-        >
-          Cancel
-        </button>
+          text='Cancel'
+        />
       </div>
     </form>
   );
@@ -237,28 +228,21 @@ function FinalizeStep({ onCancel, setError, nextStep, steamId }: FinalizeStepPro
       </div>
       <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
         <p className="text-sm text-blue-700">
-          <strong>Node:</strong>If you have a phone number linked to your account, then you&apos;ll be sent an SMS with an activation code. Otherwise, you&apos;ll receive the activation code by email.
+          <strong>Note:</strong> If you have a phone number linked to your account, then you&apos;ll be sent an SMS with an activation code. Otherwise, you&apos;ll receive the activation code by email.
         </p>
       </div>
 
       <div className="flex space-x-3">
-        <button
+        <PrimaryButton
           type="submit"
-          className="flex-1 px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-        >
-          {isLoading ? (
-            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-300 mx-auto"></div>
-          ) : (
-            'Next'
-          )}
-        </button>
-        <button
-          type="button"
+          isLoading={isLoading}
+          text='Next'
+          loadingText='Finalizing...'
+        />
+        <SecondaryButton
           onClick={onCancel}
-          className="flex-1 px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-        >
-          Cancel
-        </button>
+          text='Cancel'
+        />
       </div>
     </form>
   );
@@ -296,13 +280,11 @@ function CheckRecoveryCodeStep({ setError, recoveryCode, nextStep }: CheckRecove
         <div className="bg-gray-100 border border-gray-300 rounded-md p-4">
           <p className="text-lg font-mono text-gray-900 break-all">{recoveryCode}</p>
         </div>
-        <button
+        <PrimaryButton
           type="button"
           onClick={() => setSeen(true)}
-          className="px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-        >
-          I have saved the recovery code
-        </button>
+          text='I have saved the recovery code'
+        />
       </div>
     );
   }
@@ -325,14 +307,10 @@ function CheckRecoveryCodeStep({ setError, recoveryCode, nextStep }: CheckRecove
         />
       </div>
 
-      <div className="flex space-x-3">
-        <button
-          type="submit"
-          className="flex-1 px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-        >
-          Next
-        </button>
-      </div>
+      <PrimaryButton
+        type="submit"
+        text='Next'
+      />
     </form>
   );
 }
@@ -348,13 +326,11 @@ function CongratulationsStep({ onContinue }: CongratulationsStepProps) {
       <p className="text-gray-700 mb-6">
         A Steam Guard authenticator has been successfully added to your account!
       </p>
-      <button
+      <PrimaryButton
         type="button"
         onClick={onContinue}
-        className="px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-      >
-        Continue
-      </button>
+        text='Continue'
+      />
     </div>
   );
 }

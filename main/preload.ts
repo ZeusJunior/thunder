@@ -43,6 +43,9 @@ const handler = {
   getAuthCode: () => {
     return invoke('get-auth-code');
   },
+  exportAccountSecrets: (password: string) => {
+    return invoke('export-account-secrets', password);
+  },
 
   showMaFileDialog: () => {
     return invoke('show-mafile-dialog');
