@@ -157,7 +157,16 @@ ipcMain.on('open-steam-window', async (event, { url }: { url: string }) => {
       return;
     }
 
-    const proceed = async () => {
+    const proceed = async (cookiesRefreshed = false) => {
+      // Set cookies again if they were refreshed
+      if (cookiesRefreshed) {
+        const account = getCurrentAccount(false);
+        if (!account) {
+          throw new Error('No current account set');
+        }
+        community.setCookies(account.cookies || []);
+      }
+
       const steamWindow = createWindow('steam', {
         width: 1200,
         height: 800,
@@ -189,7 +198,7 @@ ipcMain.on('open-steam-window', async (event, { url }: { url: string }) => {
       refreshToken: account.refreshToken,
     })
       .then(() => {
-        return proceed();
+        return proceed(true);
       })
       .catch(() => {
         event.reply('login-required');
@@ -374,7 +383,16 @@ handleIpc('get-confirmations', async (event) => {
         return resolve([]);
       }
 
-      const proceed = async () => {
+      const proceed = async (cookiesRefreshed = false) => {
+        // Set cookies again if they were refreshed
+        if (cookiesRefreshed) {
+          const account = getCurrentAccount(false);
+          if (!account) {
+            throw new Error('No current account set');
+          }
+          community.setCookies(account.cookies || []);
+        }
+
         community.getConfirmations(time(), getConfirmationKey(account.identitySecret, time(), 'conf'), async (err, confirmations) => {
           if (err) {
             return reject(err);
@@ -398,7 +416,7 @@ handleIpc('get-confirmations', async (event) => {
         refreshToken: account.refreshToken,
       })
         .then(() => {
-          return proceed();
+          return proceed(true);
         })
         .catch(() => {
           event.sender.send('login-required');

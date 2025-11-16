@@ -79,7 +79,7 @@ export function verifyPassword(password: string) {
 
     return true;
   } catch (error) {
-    console.error('Error initializing store:', error);
+    console.error('Error verifying password:', error);
     return false;
   }
 }
