@@ -28,6 +28,8 @@ Now onto the good stuff
 
 ### Planned features
 - Adding tags or notes to accounts for easier organization
+- Close to system tray with some easy access options
+- A minimal display version, if all you want is an authenticator without all the account management stuff
 
 Have other feature ideas? Let me know by opening an [issue](https://github.com/ZeusJunior/thunder/issues/new)!
 
