@@ -17,6 +17,9 @@ const handler = {
     create: (password: string) => invoke('config-create', password),
     initialize: (password: string) => invoke('config-initialize', password),
   },
+  showAppDataDirectory: () => {
+    ipcRenderer.send('show-app-data-directory');
+  },
   openBrowser: {
     github: () => {
       ipcRenderer.send('open-browser-github');

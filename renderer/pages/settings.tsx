@@ -85,6 +85,12 @@ export default function SettingsPage() {
           <SettingSection title="App info">
             <div className="text-sm text-gray-600">
               <div>Version: {process.env.VERSION}</div>
+              <button
+                onClick={() => window.electron.showAppDataDirectory()}
+                className="text-blue-600 hover:underline mt-2 cursor-pointer"
+              >
+                View app data directory
+              </button>
             </div>
           </SettingSection>
         </div>

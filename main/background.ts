@@ -217,6 +217,11 @@ handleIpc('config-initialize', async (event, password) => {
   return initializeStore(password);
 });
 
+ipcMain.on('show-app-data-directory', async () => {
+  const appDataPath = app.getPath('userData');
+  shell.showItemInFolder(path.join(appDataPath, 'config.json'));
+});
+
 // Account handlers
 handleIpc('get-all-accounts', async () => {
   return getAllAccounts();
