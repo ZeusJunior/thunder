@@ -1,10 +1,10 @@
 import path from 'path';
-import { app, ipcMain, shell, dialog } from 'electron';
+import { app, ipcMain, shell, dialog, IpcMainEvent } from 'electron';
 import serve from 'electron-serve';
 import { createWindow, getCurrentAccount, getDebugInfo, configFileExists, getAllAccounts, setCurrentAccount, addAccount, accountExists } from './helpers';
 import SteamCommunity from 'steamcommunity';
 import { addAuthenticator, finalizeAuthenticator, getAuthCode, loginAgain, refreshProfile } from './helpers/steam';
-import { createEncryptedStore, initializeStore } from './store';
+import { createEncryptedStore, initializeStore, verifyPassword } from './store';
 import { Account, Confirmation, IpcHandlers, MaFileData } from './types';
 import { readFile } from 'fs/promises';
 import { getConfirmationKey, time } from 'steam-totp';
@@ -123,27 +123,12 @@ app.on('window-all-closed', () => {
 ipcMain.on('message', async (event, arg) => {
   event.reply('message', `${arg} World!`);
 });
-ipcMain.on(
-  'open-new-window',
-  async (event, { url, external }: { url: string; external: boolean }) => {
-    if (external) {
-      await shell.openExternal(url);
-      return;
-    }
+ipcMain.on('open-browser-github', async () => {
+  await shell.openExternal('https://github.com/ZeusJunior/thunder');
+  return;
+});
 
-    const newWindow = createWindow('external', {
-      width: 1200,
-      height: 800,
-      webPreferences: {
-        preload: path.join(__dirname, 'preload.js'),
-      },
-    });
-
-    await newWindow.loadURL(url);
-  }
-);
-
-ipcMain.on('open-steam-window', async (event, { url }: { url: string }) => {
+function openSteamWindow(event: IpcMainEvent, url: string) {
   const account = getCurrentAccount(false);
   if (!account) {
     throw new Error('No current account set');
@@ -157,7 +142,16 @@ ipcMain.on('open-steam-window', async (event, { url }: { url: string }) => {
       return;
     }
 
-    const proceed = async () => {
+    const proceed = async (cookiesRefreshed = false) => {
+      // Set cookies again if they were refreshed
+      if (cookiesRefreshed) {
+        const account = getCurrentAccount(false);
+        if (!account) {
+          throw new Error('No current account set');
+        }
+        community.setCookies(account.cookies || []);
+      }
+
       const steamWindow = createWindow('steam', {
         width: 1200,
         height: 800,
@@ -189,7 +183,7 @@ ipcMain.on('open-steam-window', async (event, { url }: { url: string }) => {
       refreshToken: account.refreshToken,
     })
       .then(() => {
-        return proceed();
+        return proceed(true);
       })
       .catch(() => {
         event.reply('login-required');
@@ -197,6 +191,13 @@ ipcMain.on('open-steam-window', async (event, { url }: { url: string }) => {
 
     return;
   });
+}
+ipcMain.on('open-steam-community', async (event) => {
+  openSteamWindow(event, 'https://steamcommunity.com/');
+});
+
+ipcMain.on('open-steam-tradeoffers', async (event) => {
+  openSteamWindow(event, 'https://steamcommunity.com/my/tradeoffers');
 });
 
 handleIpc('debug-info', async () => {
@@ -214,6 +215,11 @@ handleIpc('config-create', async (event, password) => {
 
 handleIpc('config-initialize', async (event, password) => {
   return initializeStore(password);
+});
+
+ipcMain.on('show-app-data-directory', async () => {
+  const appDataPath = app.getPath('userData');
+  shell.showItemInFolder(path.join(appDataPath, 'config.json'));
 });
 
 // Account handlers
@@ -261,6 +267,27 @@ handleIpc('get-auth-code', async () => {
     return '';
   }
   return getAuthCode(account.sharedSecret);
+});
+
+handleIpc('export-account-secrets', async (event, password: string) => {
+  try {
+    const passwordValid = verifyPassword(password);
+    if (!passwordValid) {
+      return { error: 'Invalid password' };
+    }
+
+    const account = getCurrentAccount(false);
+    if (!account) {
+      return { error: 'No current account set' };
+    }
+
+    return {
+      sharedSecret: account.sharedSecret,
+      identitySecret: account.identitySecret,
+    };
+  } catch {
+    return { error: 'Invalid password' };
+  }
 });
 
 handleIpc('show-mafile-dialog', async () => {
@@ -353,7 +380,16 @@ handleIpc('get-confirmations', async (event) => {
         return resolve([]);
       }
 
-      const proceed = async () => {
+      const proceed = async (cookiesRefreshed = false) => {
+        // Set cookies again if they were refreshed
+        if (cookiesRefreshed) {
+          const account = getCurrentAccount(false);
+          if (!account) {
+            throw new Error('No current account set');
+          }
+          community.setCookies(account.cookies || []);
+        }
+
         community.getConfirmations(time(), getConfirmationKey(account.identitySecret, time(), 'conf'), async (err, confirmations) => {
           if (err) {
             return reject(err);
@@ -377,7 +413,7 @@ handleIpc('get-confirmations', async (event) => {
         refreshToken: account.refreshToken,
       })
         .then(() => {
-          return proceed();
+          return proceed(true);
         })
         .catch(() => {
           event.sender.send('login-required');

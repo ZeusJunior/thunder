@@ -72,6 +72,7 @@ export const createWindow = (
   state = ensureVisibleOnSomeDisplay(restore());
 
   const win = new BrowserWindow({
+    autoHideMenuBar: true,
     ...state,
     ...options,
     webPreferences: {

@@ -11,22 +11,39 @@ export function loginAgain(details: SteamUser.LogOnDetailsNamePass | SteamUser.L
     let loggedOn = false;
     let cookies: string[] = [];
     let newRefreshToken = '';
+    let hasResolved = false;
 
     const user = new SteamUser({ renewRefreshTokens: true });
     user.logOn(details);
 
     const saveAndResolve = () => {
+      if (hasResolved) return;
+      hasResolved = true;
+
       const steamId = user.steamID!.getSteamID64();
       updateAccount(steamId, {
         cookies,
-        refreshToken: newRefreshToken,
+        ...(newRefreshToken ? { refreshToken: newRefreshToken } : {}),
       });
       return resolve();
     };
 
+    const checkReadyAndSetTimeout = () => {
+      if (loggedOn && cookies.length > 0) {
+        // Wait up to 1 extra second for refreshToken, then proceed anyway
+        // It doesn't always fire or possibly after loggedOn and webSession events fire.
+        // Do still want to try and save the new one as the old one is expired if we get it. 
+        setTimeout(() => {
+          if (!hasResolved) {
+            console.log('Proceeding without new refresh token after timeout');
+            saveAndResolve();
+          }
+        }, 1000);
+      }
+    };
+
     user.on('error', (err) => {
-      // TODO: Figure out specific EResult for invalid/expired refresh token?
-      // TODO: Handle this error better in the UI
+      // TODO: Handle any errors here better in the UI
       console.error('Error re-authenticating:', err);
       return reject(new Error(err.message));
     });
@@ -34,19 +51,17 @@ export function loginAgain(details: SteamUser.LogOnDetailsNamePass | SteamUser.L
     user.on('loggedOn', () => {
       console.log('Re-authenticated successfully for', user.steamID!.getSteamID64());
       loggedOn = true;
-      if (cookies.length > 0 && newRefreshToken) {
-        return saveAndResolve();
-      }
+      checkReadyAndSetTimeout();
     });
 
     user.on('webSession', (_sessionID, webSession) => {
+      console.log('Obtained new web session for', user.steamID!.getSteamID64());
       cookies = webSession;
-      if (loggedOn && newRefreshToken) {
-        return saveAndResolve();
-      }
+      checkReadyAndSetTimeout();
     });
 
     user.on('refreshToken', (token) => {
+      console.log('Obtained new refresh token for', user.steamID!.getSteamID64());
       newRefreshToken = token;
       if (loggedOn && cookies.length > 0) {
         return saveAndResolve();

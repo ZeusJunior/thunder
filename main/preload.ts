@@ -17,11 +17,21 @@ const handler = {
     create: (password: string) => invoke('config-create', password),
     initialize: (password: string) => invoke('config-initialize', password),
   },
-  openWindow: (url: string, external: boolean) => {
-    ipcRenderer.send('open-new-window', { url, external });
+  showAppDataDirectory: () => {
+    ipcRenderer.send('show-app-data-directory');
   },
-  openSteamWindow: (url: string) => {
-    ipcRenderer.send('open-steam-window', { url });
+  openBrowser: {
+    github: () => {
+      ipcRenderer.send('open-browser-github');
+    }
+  },
+  openSteamWindow: {
+    community: () => {
+      ipcRenderer.send('open-steam-community');
+    },
+    tradeOffers: () => {
+      ipcRenderer.send('open-steam-tradeoffers');
+    },
   },
 
   addAuthenticator: (
@@ -42,6 +52,9 @@ const handler = {
   },
   getAuthCode: () => {
     return invoke('get-auth-code');
+  },
+  exportAccountSecrets: (password: string) => {
+    return invoke('export-account-secrets', password);
   },
 
   showMaFileDialog: () => {
