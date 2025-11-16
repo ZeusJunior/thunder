@@ -17,11 +17,18 @@ const handler = {
     create: (password: string) => invoke('config-create', password),
     initialize: (password: string) => invoke('config-initialize', password),
   },
-  openWindow: (url: string, external: boolean) => {
-    ipcRenderer.send('open-new-window', { url, external });
+  openBrowser: {
+    github: () => {
+      ipcRenderer.send('open-browser-github');
+    }
   },
-  openSteamWindow: (url: string) => {
-    ipcRenderer.send('open-steam-window', { url });
+  openSteamWindow: {
+    community: () => {
+      ipcRenderer.send('open-steam-community');
+    },
+    tradeOffers: () => {
+      ipcRenderer.send('open-steam-tradeoffers');
+    },
   },
 
   addAuthenticator: (

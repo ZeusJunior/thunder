@@ -19,10 +19,6 @@ export default function Sidebar() {
   const [popupError, setPopupError] = useState<string>('');
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
-  const handleOpenSteam = (url: string) => {
-    window.electron.openSteamWindow(url);
-  };
-
   useEffect(() => {
     // Perhaps our session expired, listen for event
     window.electron.events.onLoginRequired(() => {
@@ -89,7 +85,7 @@ export default function Sidebar() {
             <li className="border-t border-gray-700 pt-1">
               <Link
                 href="#"
-                onClick={() => handleOpenSteam('https://steamcommunity.com')}
+                onClick={() => window.electron.openSteamWindow.community()}
                 className="flex items-center px-3 py-2 rounded-lg hover:bg-gray-800 transition-colors duration-200"
               >
                 <ExternalIcon className="w-5 h-5 mr-2" />
@@ -99,7 +95,7 @@ export default function Sidebar() {
             <li>
               <Link
                 href="#"
-                onClick={() => handleOpenSteam('https://steamcommunity.com/my/tradeoffers')}
+                onClick={() => window.electron.openSteamWindow.tradeOffers()}
                 className="flex items-center px-3 py-2 rounded-lg hover:bg-gray-800 transition-colors duration-200"
               >
                 <ExternalIcon className="w-5 h-5 mr-2" />
@@ -160,7 +156,7 @@ export default function Sidebar() {
               <SettingsIcon className="w-5 h-5" />
             </Link>
             <button
-              onClick={() => window.electron.openWindow('https://github.com/ZeusJunior/thunder', true)}
+              onClick={() => window.electron.openBrowser.github()}
               className="cursor-pointer flex-1 flex items-center justify-center p-2 rounded-lg hover:bg-gray-800 transition-colors duration-200"
               title="GitHub Repository"
             >
