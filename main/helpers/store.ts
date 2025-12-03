@@ -153,7 +153,7 @@ type AccountUpdateData = {
 /**
  * Update account data in the store
  * @param accountId The account ID to update
- * @param data Partial account data to update, nested objects will be fully replaced
+ * @param data Partial account data to update, nested objects will be fully replaced. null/undefined values will remove the property.
  * @return Boolean indicating if the update was successful
  * 
   * @example
@@ -181,7 +181,12 @@ export function updateAccount(accountId: string, data: AccountUpdateData): boole
   }
 
   Object.entries(data).forEach(([key, value]) => {
-    store.set(`accounts.${accountId}.${key}`, value);
+    if (value === null || value === undefined) {
+      // @ts-expect-error Type doesn't support dot notation
+      store.delete(`accounts.${accountId}.${key}`);
+    } else {
+      store.set(`accounts.${accountId}.${key}`, value);
+    }
   });
 
   return true;

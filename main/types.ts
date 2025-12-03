@@ -21,6 +21,8 @@ export interface Account {
   // Steam login stuff
   refreshToken?: string;
   cookies?: string[];
+	// For re-use during authenticator setup
+	mobileAccessToken?: string;
   // The entire steam two factor response, we're supposed to store it but we only
   // really use sharedSecret and identitySecret from it
   twoFactorResponse?: SteamTwoFactorResponse;

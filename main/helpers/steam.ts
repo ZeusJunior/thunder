@@ -188,6 +188,7 @@ export async function addAuthenticator({
               },
               cookies,
               twoFactorResponse: response as SteamTwoFactorResponse,
+              mobileAccessToken: community.mobileAccessToken,
             });
 
             return resolve({
@@ -218,9 +219,13 @@ export async function finalizeAuthenticator(
   if (!account.sharedSecret) {
     throw new Error('This account has not started the 2FA setup process, you can\'t finalize it.');
   }
+  if (!account.mobileAccessToken) {
+    throw new Error('This account is not logged in via mobile, please create an issue on GitHub.');
+  }
 
   const community = new SteamCommunity();
   community.setCookies(account.cookies || []);
+  community.setMobileAppAccessToken(account.mobileAccessToken);
 
   // Finalize the 2FA setup
   return new Promise((resolve, reject) => {
@@ -235,7 +240,7 @@ export async function finalizeAuthenticator(
 
         console.log('2FA setup finalized successfully for ', steamId);
 
-        updateAccount(steamId, { meta: { ...account.meta, setupComplete: true } });
+        updateAccount(steamId, { meta: { ...account.meta, setupComplete: true }, mobileAccessToken: undefined });
 
         return resolve(true);
       }
