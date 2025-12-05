@@ -30,6 +30,10 @@ export function loginAgain(details: SteamUser.LogOnDetailsNamePass | SteamUser.L
 
     const checkReadyAndSetTimeout = () => {
       if (loggedOn && cookies.length > 0) {
+        if (newRefreshToken) {
+          return saveAndResolve();
+        }
+
         // Wait up to 1 extra second for refreshToken, then proceed anyway
         // It doesn't always fire or possibly after loggedOn and webSession events fire.
         // Do still want to try and save the new one as the old one is expired if we get it. 
@@ -49,23 +53,22 @@ export function loginAgain(details: SteamUser.LogOnDetailsNamePass | SteamUser.L
     });
 
     user.on('loggedOn', () => {
-      console.log('Re-authenticated successfully for', user.steamID!.getSteamID64());
+      console.log('Re-authenticated successfully for', user.steamID?.getSteamID64() || 'unknown steamID');
       loggedOn = true;
       checkReadyAndSetTimeout();
     });
 
     user.on('webSession', (_sessionID, webSession) => {
-      console.log('Obtained new web session for', user.steamID!.getSteamID64());
+      console.log('Obtained new web session for', user.steamID?.getSteamID64() || 'unknown steamID');
       cookies = webSession;
       checkReadyAndSetTimeout();
     });
 
     user.on('refreshToken', (token) => {
-      console.log('Obtained new refresh token for', user.steamID!.getSteamID64());
+      // This event might fire before loggedOn/webSession, so the steamID might not be available yet
+      console.log('Obtained new refresh token for', user.steamID?.getSteamID64() || 'unknown steamID');
       newRefreshToken = token;
-      if (loggedOn && cookies.length > 0) {
-        return saveAndResolve();
-      }
+      checkReadyAndSetTimeout();
     });
   });
 };
