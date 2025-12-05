@@ -129,7 +129,7 @@ ipcMain.on('open-browser-github', async () => {
 });
 
 function openSteamWindow(event: IpcMainEvent, url: string) {
-  const account = getCurrentAccount(false);
+  let account = getCurrentAccount(false);
   if (!account) {
     throw new Error('No current account set');
   }
@@ -138,14 +138,17 @@ function openSteamWindow(event: IpcMainEvent, url: string) {
   community.setCookies(account.cookies || []);
   community.loggedIn(async (err, loggedIn) => {
     if (err) {
+      console.log('Error checking Steam login status:', err);
       event.reply('login-required');
       return;
     }
 
+    console.log('Steam loggedIn status:', loggedIn);
+
     const proceed = async (cookiesRefreshed = false) => {
       // Set cookies again if they were refreshed
       if (cookiesRefreshed) {
-        const account = getCurrentAccount(false);
+        account = getCurrentAccount(false);
         if (!account) {
           throw new Error('No current account set');
         }
@@ -156,7 +159,7 @@ function openSteamWindow(event: IpcMainEvent, url: string) {
         width: 1200,
         height: 800,
       });
-      const cookies = account.cookies || [];
+      const cookies = account?.cookies || [];
       for (const cookie of cookies) {
         const [name, value] = cookie.split('=');
         await steamWindow.webContents.session.cookies.set({
@@ -175,6 +178,7 @@ function openSteamWindow(event: IpcMainEvent, url: string) {
 
     // If we're not logged in, check if we have a refresh token to re-authenticate
     if (!account?.refreshToken) {
+      console.log('No refresh token available for re-authentication');
       event.reply('login-required');
       return;
     }
@@ -183,9 +187,11 @@ function openSteamWindow(event: IpcMainEvent, url: string) {
       refreshToken: account.refreshToken,
     })
       .then(() => {
+        console.log('Re-authentication with refresh token successful');
         return proceed(true);
       })
       .catch(() => {
+        console.log('Re-authentication with refresh token failed');
         event.reply('login-required');
       });
 
