@@ -91,6 +91,7 @@ export interface IpcHandlers {
   'config-exists': () => Promise<boolean>;
   'config-create': (password: string) => Promise<{ success: boolean; error?: string }>;
   'config-initialize': (password: string) => Promise<{ success: boolean; error?: string }>;
+  'config-change-password': (currentPassword: string, newPassword: string, confirmPassword: string) => Promise<{ success: boolean; error?: string }>;
   'get-all-accounts': () => Promise<Record<string, LimitedAccount>>;
   'get-current-account': () => Promise<LimitedAccount | null>;
   'set-current-account': (accountId: string) => Promise<boolean>;

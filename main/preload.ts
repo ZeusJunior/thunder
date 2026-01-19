@@ -16,6 +16,7 @@ const handler = {
     exists: () => invoke('config-exists'),
     create: (password: string) => invoke('config-create', password),
     initialize: (password: string) => invoke('config-initialize', password),
+    changePassword: (currentPassword: string, newPassword: string, confirmPassword: string) => invoke('config-change-password', currentPassword, newPassword, confirmPassword),
   },
   showAppDataDirectory: () => {
     ipcRenderer.send('show-app-data-directory');

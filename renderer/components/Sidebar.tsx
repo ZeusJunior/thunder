@@ -11,6 +11,7 @@ import DocumentCheckIcon from './Icons/DocumentCheck';
 import SettingsIcon from './Icons/Settings';
 import { ErrorMessage } from './ErrorMessage';
 import PrimaryButton from './Form/PrimaryButton';
+import PasswordInput from './Form/Input/Password';
 
 export default function Sidebar() {
   const { currentAccount } = useAccount();
@@ -178,16 +179,14 @@ export default function Sidebar() {
           <form onSubmit={handlePasswordSubmit} className="space-y-4">
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-900 mb-2">
-                Steam Password
+                Steam password
               </label>
-              <input
-                type="password"
+              <PasswordInput
                 id="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                placeholder="Enter your Steam password"
-                required
+                className="rounded-md"
+                placeholder="Your Steam password"
                 autoFocus
               />
             </div>

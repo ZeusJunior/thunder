@@ -4,7 +4,7 @@ import serve from 'electron-serve';
 import { createWindow, getCurrentAccount, getDebugInfo, configFileExists, getAllAccounts, setCurrentAccount, addAccount, accountExists } from './helpers';
 import SteamCommunity from 'steamcommunity';
 import { addAuthenticator, finalizeAuthenticator, getAuthCode, loginAgain, refreshProfile } from './helpers/steam';
-import { createEncryptedStore, initializeStore, verifyPassword } from './store';
+import { createEncryptedStore, initializeStore, verifyPassword, changePassword } from './store';
 import { Account, Confirmation, IpcHandlers, MaFileData } from './types';
 import { readFile } from 'fs/promises';
 import { getConfirmationKey, time } from 'steam-totp';
@@ -221,6 +221,10 @@ handleIpc('config-create', async (event, password) => {
 
 handleIpc('config-initialize', async (event, password) => {
   return initializeStore(password);
+});
+
+handleIpc('config-change-password', async (event, currentPassword, newPassword, confirmPassword) => {
+  return changePassword(currentPassword, newPassword, confirmPassword);
 });
 
 ipcMain.on('show-app-data-directory', async () => {

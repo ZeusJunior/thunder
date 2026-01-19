@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { ErrorMessage } from '../../ErrorMessage';
 import SecondaryButton from '../../Form/SecondaryButton';
 import PrimaryButton from '../../Form/PrimaryButton';
+import PasswordInput from '../../Form/Input/Password';
+import Input from '../../Form/Input/Input';
 
 interface NewAuthenticatorProps {
   onSuccess: (accountId: string) => void;
@@ -112,15 +114,15 @@ function LoginStep({ onCancel, setError, setSteamId, setRecoveryCode, nextStep }
       {showAuthCode ? (
         <div>
           <label htmlFor="authCode" className="block text-sm font-medium text-gray-700">
-            Steam Guard Code
+            Steam Guard code
           </label>
-          <input
+          <Input
             type="text"
             id="authCode"
             required
             autoFocus
             placeholder="Enter the Steam Guard code"
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            className="mt-1 rounded-md shadow-sm"
             value={authCode}
             onChange={(e) => setAuthCode(e.target.value)}
           />
@@ -129,14 +131,14 @@ function LoginStep({ onCancel, setError, setSteamId, setRecoveryCode, nextStep }
         <>
           <div>
             <label htmlFor="accountName" className="block text-sm font-medium text-gray-700">
-              Steam Username
+              Steam username
             </label>
-            <input
+            <Input
               type="text"
               id="accountName"
               required
               placeholder="Your Steam username"
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              className="mt-1 rounded-md shadow-sm"
               value={accountName}
               onChange={(e) => setAccountName(e.target.value)}
             />
@@ -144,14 +146,12 @@ function LoginStep({ onCancel, setError, setSteamId, setRecoveryCode, nextStep }
 
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-              Steam Password
+              Steam password
             </label>
-            <input
-              type="password"
+            <PasswordInput
               id="password"
-              required
               placeholder="Your Steam password"
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              className="mt-1 rounded-md shadow-sm"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
@@ -215,13 +215,13 @@ function FinalizeStep({ onCancel, setError, nextStep, steamId }: FinalizeStepPro
         <label htmlFor="authCode" className="block text-sm font-medium text-gray-700">
           Activation Code
         </label>
-        <input
+        <Input
           type="text"
           id="authCode"
           required
           autoFocus
           placeholder="Enter the activation code"
-          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+          className="mt-1 block rounded-md shadow-sm"
           value={activationCode}
           onChange={(e) => setActivationCode(e.target.value)}
         />
@@ -293,15 +293,15 @@ function CheckRecoveryCodeStep({ setError, recoveryCode, nextStep }: CheckRecove
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
         <label htmlFor="recoveryCode" className="block text-sm font-medium text-gray-700">
-          Recovery Code
+          Recovery code
         </label>
-        <input
+        <Input
           type="text"
           id="recoveryCode"
           required
           autoFocus
           placeholder="Enter the recovery code to confirm"
-          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+          className="mt-1 rounded-md shadow-sm"
           value={enteredCode}
           onChange={(e) => setEnteredCode(e.target.value)}
         />

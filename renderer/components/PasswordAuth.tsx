@@ -2,6 +2,7 @@ import Head from 'next/head';
 import React, { useState } from 'react';
 import { ErrorMessage } from './ErrorMessage';
 import PrimaryButton from './Form/PrimaryButton';
+import PasswordInput from './Form/Input/Password';
 
 interface PasswordAuthProps {
   isFirstTime: boolean
@@ -54,36 +55,32 @@ export default function PasswordAuth({ isFirstTime, onAuthenticated }: PasswordA
   return (
     <>
       <Head>
-        <title>{isFirstTime ? 'Set Up Password' : 'Enter password'} - Thunder</title>
+        <title>{isFirstTime ? 'Set up password' : 'Enter password'} - Thunder</title>
       </Head>
       <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full space-y-8">
+        <div className="max-w-md w-full space-y-4">
           <div>
-            <h2 className="mt-6 text-center text-3xl font-extrabold">
-              {isFirstTime ? 'Set Up Password' : 'Enter password'}
+            <h2 className="text-center text-3xl font-extrabold">
+              {isFirstTime ? 'Set up password' : 'Enter password'}
             </h2>
             <p className="mt-2 text-center text-sm text-gray-600">
               {isFirstTime
-                ? 'Create a password to secure your application'
+                ? 'Create a password to secure your authenticator'
                 : 'Please enter your password to access Thunder'
               }
             </p>
           </div>
-          <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-            <div className="rounded-md shadow-sm -space-y-px">
+          <form className="mt-8 space-y-4" onSubmit={handleSubmit}>
+            <div className="rounded-md shadow-sm">
               <div>
                 <label htmlFor="password" className="sr-only">
                   Password
                 </label>
-                {/* TODO: Make inputs reusable */}
-                <input
+                <PasswordInput
                   id="password"
-                  name="password"
-                  type="password"
                   autoComplete="current-password"
-                  required
-                  className={`relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm ${isFirstTime ? 'rounded-t-md' : 'rounded-md'}`}
-                  placeholder="Password"
+                  className={`${isFirstTime ? 'rounded-t-md' : 'rounded-md'}`}
+                  placeholder={`${isFirstTime ? 'Create password (min 6 characters)' : 'Enter password'}`}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
@@ -91,16 +88,13 @@ export default function PasswordAuth({ isFirstTime, onAuthenticated }: PasswordA
               {isFirstTime && (
                 <div>
                   <label htmlFor="confirm-password" className="sr-only">
-                    Confirm Password
+                    Confirm password
                   </label>
-                  <input
+                  <PasswordInput
                     id="confirm-password"
-                    name="confirm-password"
-                    type="password"
                     autoComplete="new-password"
-                    required
-                    className="relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm rounded-b-md"
-                    placeholder="Confirm Password"
+                    className="rounded-b-md"
+                    placeholder="Confirm password (min 6 characters)"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                   />
