@@ -10,6 +10,7 @@ import { readFile } from 'fs/promises';
 import { getConfirmationKey, time } from 'steam-totp';
 import { autoUpdater } from 'electron-updater';
 import { DownloadStatusPage } from './html/download-status';
+import requestDefault from './helpers/request';
 
 // Type-safe IPC handler helper
 function handleIpc<K extends keyof IpcHandlers>(
@@ -134,7 +135,7 @@ function openSteamWindow(event: IpcMainEvent, url: string) {
     throw new Error('No current account set');
   }
 
-  const community = new SteamCommunity();
+  const community = new SteamCommunity({ request: requestDefault as any });
   community.setCookies(account.cookies || []);
   community.loggedIn(async (err, loggedIn) => {
     if (err) {
@@ -380,7 +381,7 @@ handleIpc('get-confirmations', async (event) => {
     throw new Error('No current account set');
   }
 
-  const community = new SteamCommunity();
+  const community = new SteamCommunity({ request: requestDefault as any });
   community.setCookies(account.cookies || []);
 
   return new Promise((resolve, reject) => {
@@ -439,7 +440,7 @@ handleIpc('respond-to-confirmation', async (event, id: number, key: string, acce
     throw new Error('No current account set');
   }
 
-  const community = new SteamCommunity();
+  const community = new SteamCommunity({ request: requestDefault as any });
   community.setCookies(account.cookies || []);
 
   return new Promise((resolve, reject) => {
@@ -461,7 +462,7 @@ handleIpc('accept-all-confirmations', async () => {
     throw new Error('No current account set');
   }
 
-  const community = new SteamCommunity();
+  const community = new SteamCommunity({ request: requestDefault as any });
   community.setCookies(account.cookies || []);
 
   return new Promise((resolve, reject) => {

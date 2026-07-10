@@ -43,9 +43,9 @@ const handler = {
 
   getAllAccounts: () => invoke('get-all-accounts'),
   getCurrentAccount: () => invoke('get-current-account'),
-  setCurrentAccount: (accountId: string) => invoke('set-current-account', accountId),
-  refreshProfile: (accountId: string) => {
-    return invoke('refresh-profile', accountId);
+  setCurrentAccount: (steamId: string) => invoke('set-current-account', steamId),
+  refreshProfile: (steamId: string) => {
+    return invoke('refresh-profile', steamId);
   },
 
   loginAgain: async (password: string) => {

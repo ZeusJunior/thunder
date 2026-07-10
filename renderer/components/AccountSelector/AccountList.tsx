@@ -6,7 +6,7 @@ import { ErrorMessage } from '../ErrorMessage';
 import Input from '../Form/Input/Input';
 import MagnifyingGlassIcon from '../Icons/MagnifyingGlass';
 
-export default function AccountList({ onSelect }: { onSelect: (accountId: string) => void }) {
+export default function AccountList({ onSelect }: { onSelect: (steamId: string) => void }) {
   const { accounts, isLoading, loadAccounts } = useAccount();
   const [filteredAccounts, setFilteredAccounts] = useState(Object.values(accounts || {}));
   const [search, setSearch] = useState('');
@@ -25,8 +25,8 @@ export default function AccountList({ onSelect }: { onSelect: (accountId: string
     setFilteredAccounts(results);
   }, [search, accounts]);
 
-  const refreshProfile = async (accountId: string) => {
-    const result = await window.electron.refreshProfile(accountId);
+  const refreshProfile = async (steamId: string) => {
+    const result = await window.electron.refreshProfile(steamId);
     if (result) {
       return await loadAccounts();
     }

@@ -1851,10 +1851,10 @@
     "@types/node" "*"
     "@types/steamid" "*"
 
-"@types/steamcommunity@^3.43.8":
-  version "3.43.8"
-  resolved "https://registry.yarnpkg.com/@types/steamcommunity/-/steamcommunity-3.43.8.tgz#bf7d121f20f5da81cc3122edad894f644089385a"
-  integrity sha512-q742mcnxjiT3t0TyjhoTEpzmy1JI8L/p7nvvPBwNdArgjgb/5n5aWgKK8RavKIizAJ7AgjyEEfJNBY2ax8kFNw==
+"@types/steamcommunity@^3.50.0":
+  version "3.50.0"
+  resolved "https://registry.yarnpkg.com/@types/steamcommunity/-/steamcommunity-3.50.0.tgz#090ebc7abf63ac8978024cd1d4d29bd3d150dc33"
+  integrity sha512-IueOZ7dTGEpWMh8kHmsromivMFGI3tH3d/jMor23KmFQBb6R10SW/dlU9tGUJ8nH02IlwizdFR7bjhbCtP8niA==
   dependencies:
     "@types/node" "*"
     "@types/request" "*"
@@ -5863,7 +5863,7 @@ regjsparser@^0.13.0:
   dependencies:
     jsesc "~3.1.0"
 
-request@^2.88.0:
+request@^2.88.0, request@^2.88.2:
   version "2.88.2"
   resolved "https://registry.yarnpkg.com/request/-/request-2.88.2.tgz#d73c918731cb5a87da047e207234146f664d12b3"
   integrity sha512-MsvtOrfG9ZcrOwAW+Qi+F6HbD0CWXEh9ou77uOb7FM2WPhwT7smM833PzanhJLsgXjN89Ir6V2PczXNnMpwKhw==

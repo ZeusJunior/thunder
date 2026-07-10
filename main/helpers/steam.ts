@@ -5,6 +5,7 @@ import { accountExists, addAccount, getAccount, updateAccount } from './store';
 import SteamID from 'steamid';
 import { getStore } from '../store';
 import { SteamTwoFactorResponse } from '../types';
+import requestDefault from './request';
 
 export function loginAgain(details: SteamUser.LogOnDetailsNamePass | SteamUser.LogOnDetailsRefresh) {
   return new Promise<void>((resolve, reject) => {
@@ -84,7 +85,7 @@ export function refreshProfile(accountId: string): Promise<true> {
     throw new Error('Account not found');
   }
 
-  const community = new SteamCommunity();
+  const community = new SteamCommunity({ request: requestDefault as any });
   community.setCookies(account.cookies || []);
 
   return new Promise((resolve, reject) => {
@@ -126,7 +127,7 @@ export async function addAuthenticator({
 
   const details = { accountName, password, authCode, disableMobile: false };
 
-  const community = new SteamCommunity();
+  const community = new SteamCommunity({ request: requestDefault as any });
 
   return new Promise((resolve, reject) => {
     community.login(details, (err, _sessionID, cookies) => {
@@ -226,7 +227,7 @@ export async function finalizeAuthenticator(
     throw new Error('This account is not logged in via mobile, please create an issue on GitHub.');
   }
 
-  const community = new SteamCommunity();
+  const community = new SteamCommunity({ request: requestDefault as any });
   community.setCookies(account.cookies || []);
   community.setMobileAppAccessToken(account.mobileAccessToken);
 
