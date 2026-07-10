@@ -81,7 +81,7 @@ jobs:
           Download and open [Thunder-Authenticator-${{ steps.version.outputs.version_number }}-universal.dmg](https://github.com/ZeusJunior/thunder/releases/download/v${{ steps.version.outputs.version_number }}/Thunder-Authenticator-${{ steps.version.outputs.version_number }}-universal.dmg)
           
           ### Linux
-          Download and execute [Thunder-Authenticator-${{ steps.version.outputs.version_number }}-linux.AppImage](https://github.com/ZeusJunior/thunder/releases/download/v${{ steps.version.outputs.version_number }}/Thunder-Authenticator-${{ steps.version.outputs.version_number }}-linux.AppImage)
+          Download and execute [Thunder-Authenticator-${{ steps.version.outputs.version_number }}.AppImage](https://github.com/ZeusJunior/thunder/releases/download/v${{ steps.version.outputs.version_number }}/Thunder-Authenticator-${{ steps.version.outputs.version_number }}.AppImage)
 
           ## Changes
           

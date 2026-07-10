@@ -10,8 +10,5 @@ module.exports = {
   },
   env: {
     VERSION: version,
-  },
-  webpack: (config) => {
-    return config;
-  },
+  }
 };
