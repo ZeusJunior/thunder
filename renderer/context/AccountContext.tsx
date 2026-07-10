@@ -3,7 +3,7 @@ import { LimitedAccount } from '../../main/types';
 
 interface AccountContextType {
   currentAccount: LimitedAccount | null;
-  setCurrentAccount: (accountId: string | null) => Promise<boolean>;
+  setCurrentAccount: (steamId: string | null) => Promise<boolean>;
   accounts: Record<string, LimitedAccount>;
   loadAccounts: () => Promise<Record<string, LimitedAccount>>;
   isLoading: boolean;
@@ -38,18 +38,18 @@ export function AccountProvider({ children }: { children: ReactNode }) {
     return result;
   };
 
-  const setCurrentAccount = async (accountId: string | null) => {
-    if (!accountId) {
+  const setCurrentAccount = async (steamId: string | null) => {
+    if (!steamId) {
       setCurrentAccountState(null);
       return true;
     }
 
     const freshAccounts = await loadAccounts();
 
-    if (accountId && freshAccounts && freshAccounts[accountId]) {
-      const result = await window.electron.setCurrentAccount(accountId);
+    if (steamId && freshAccounts && freshAccounts[steamId]) {
+      const result = await window.electron.setCurrentAccount(steamId);
       if (result) {
-        setCurrentAccountState(freshAccounts[accountId]);
+        setCurrentAccountState(freshAccounts[steamId]);
       }
 
       return true;

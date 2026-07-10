@@ -241,12 +241,12 @@ handleIpc('get-current-account', async () => {
   return getCurrentAccount();
 });
 
-handleIpc('set-current-account', async (event, accountId) => {
-  return setCurrentAccount(accountId);
+handleIpc('set-current-account', async (event, steamId) => {
+  return setCurrentAccount(steamId);
 });
 
-handleIpc('refresh-profile', async (event, accountId) => {
-  return await refreshProfile(accountId);
+handleIpc('refresh-profile', async (event, steamId) => {
+  return await refreshProfile(steamId);
 });
 
 // Steam handlers

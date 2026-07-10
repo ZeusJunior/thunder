@@ -29,8 +29,8 @@ export default function AccountSelector({ onAccountSelected = () => { } }: Accou
     setError('');
   };
 
-  const handleSelectAccount = useCallback((accountId: string) => {
-    setCurrentAccount(accountId)
+  const handleSelectAccount = useCallback((steamId: string) => {
+    setCurrentAccount(steamId)
       .then((result) => {
         if (result) onAccountSelected();
       })

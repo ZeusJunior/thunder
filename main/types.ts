@@ -6,7 +6,7 @@ export interface ThunderConfig {
   initialized: boolean;
   createdAt: string;
   accounts: Record<string, Account>;
-  currentAccountId?: string;
+  currentSteamId?: string;
 }
 
 export interface Account {
@@ -21,8 +21,8 @@ export interface Account {
   // Steam login stuff
   refreshToken?: string;
   cookies?: string[];
-	// For re-use during authenticator setup
-	mobileAccessToken?: string;
+  // For re-use during authenticator setup
+  mobileAccessToken?: string;
   // The entire steam two factor response, we're supposed to store it but we only
   // really use sharedSecret and identitySecret from it
   twoFactorResponse?: SteamTwoFactorResponse;
@@ -94,8 +94,8 @@ export interface IpcHandlers {
   'config-change-password': (currentPassword: string, newPassword: string, confirmPassword: string) => Promise<{ success: boolean; error?: string }>;
   'get-all-accounts': () => Promise<Record<string, LimitedAccount>>;
   'get-current-account': () => Promise<LimitedAccount | null>;
-  'set-current-account': (accountId: string) => Promise<boolean>;
-  'refresh-profile': (accountId: string) => Promise<boolean>;
+  'set-current-account': (steamId: string) => Promise<boolean>;
+  'refresh-profile': (steamId: string) => Promise<boolean>;
   'add-authenticator': (options: Pick<SteamCommunity.LoginOptions, 'accountName' | 'password' | 'authCode'>) => Promise<AddAuthenticatorCode | AddAuthenticatorSuccess>;
   'finalize-authenticator': (steamId: string, activationCode: string) => Promise<true>;
   'login-again': (password: string) => Promise<void>;

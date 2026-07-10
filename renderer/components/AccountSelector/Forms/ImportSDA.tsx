@@ -4,7 +4,7 @@ import SecondaryButton from '../../Form/SecondaryButton';
 import PrimaryButton from '../../Form/PrimaryButton';
 
 interface NewAuthenticatorProps {
-  onSuccess: (accountId: string) => void;
+  onSuccess: (steamId: string) => void;
   onCancel: () => void;
 }
 

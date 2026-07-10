@@ -6,7 +6,7 @@ import PasswordInput from '../../Form/Input/Password';
 import Input from '../../Form/Input/Input';
 
 interface NewAuthenticatorProps {
-  onSuccess: (accountId: string) => void;
+  onSuccess: (steamId: string) => void;
   onCancel: () => void;
 }
 

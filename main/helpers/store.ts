@@ -29,15 +29,15 @@ export function getCurrentAccount(limited: boolean = true) {
     throw new Error('Not authenticated');
   }
 
-  const currentAccountId = store.get('currentAccountId');
-  if (!currentAccountId) {
+  const currentSteamId = store.get('currentSteamId');
+  if (!currentSteamId) {
     return null;
   }
 
-  return getAccount(currentAccountId, limited);
+  return getAccount(currentSteamId, limited);
 }
 
-export function setCurrentAccount(accountId: string) {
+export function setCurrentAccount(steamId: string) {
   const store = getStore();
   if (!store) {
     // Crash
@@ -45,22 +45,22 @@ export function setCurrentAccount(accountId: string) {
   }
 
   const accounts = store.get('accounts', {});
-  const account = accounts[accountId];
+  const account = accounts[steamId];
 
   if (!account) {
     // Crash, shouldn't be possible
     throw new Error('Account not found');
   }
 
-  store.set('currentAccountId', accountId);
+  store.set('currentSteamId', steamId);
   return true;
 }
 
-export function getAccount(accountId: string): LimitedAccount | null;
-export function getAccount(accountId: string, limited: boolean): LimitedAccount | Account | null
-export function getAccount(accountId: string, limited: true): LimitedAccount | null;
-export function getAccount(accountId: string, limited: false): Account | null;
-export function getAccount(accountId: string, limited: boolean = true) {
+export function getAccount(steamId: string): LimitedAccount | null;
+export function getAccount(steamId: string, limited: boolean): LimitedAccount | Account | null
+export function getAccount(steamId: string, limited: true): LimitedAccount | null;
+export function getAccount(steamId: string, limited: false): Account | null;
+export function getAccount(steamId: string, limited: boolean = true) {
   const store = getStore();
   if (!store) {
     // Crash
@@ -68,7 +68,7 @@ export function getAccount(accountId: string, limited: boolean = true) {
   }
 
   const accounts = store.get('accounts', {});
-  const account = accounts[accountId];
+  const account = accounts[steamId];
   if (!account) {
     return null;
   }
@@ -116,32 +116,32 @@ export function getAllAccounts() {
 
 /**
  * Check if a specific account exists in the store
- * @param accountId The account ID to check
+ * @param steamId The steam ID to check
  * @return Boolean indicating if the account exists
  */
-export function accountExists(accountId: string) {
+export function accountExists(steamId: string) {
   const store = getStore();
   if (!store) {
     return false;
   }
 
   const accounts = store.get('accounts', {});
-  return accountId in accounts;
+  return steamId in accounts;
 }
 
-export function addAccount(accountId: string, accountData: Account) {
+export function addAccount(steamId: string, accountData: Account) {
   const store = getStore();
   if (!store) {
     return false;
   }
 
   const accounts = store.get('accounts', {});
-  if (accountId in accounts) {
+  if (steamId in accounts) {
     // Account already exists
     return false;
   }
 
-  accounts[accountId] = accountData;
+  accounts[steamId] = accountData;
   store.set('accounts', accounts);
   return true;
 }
@@ -152,7 +152,7 @@ type AccountUpdateData = {
 
 /**
  * Update account data in the store
- * @param accountId The account ID to update
+ * @param steamId The steam ID to update
  * @param data Partial account data to update, nested objects will be fully replaced. null/undefined values will remove the property.
  * @return Boolean indicating if the update was successful
  * 
@@ -169,13 +169,13 @@ type AccountUpdateData = {
  * // Not supported - nested property updates
  * // updateAccount('123', { 'meta.setupComplete': true });
  */
-export function updateAccount(accountId: string, data: AccountUpdateData): boolean {
+export function updateAccount(steamId: string, data: AccountUpdateData): boolean {
   const store = getStore();
   if (!store) {
     return false;
   }
 
-  const exists = accountExists(accountId);
+  const exists = accountExists(steamId);
   if (!exists) {
     return false;
   }
@@ -183,9 +183,9 @@ export function updateAccount(accountId: string, data: AccountUpdateData): boole
   Object.entries(data).forEach(([key, value]) => {
     if (value === null || value === undefined) {
       // @ts-expect-error Type doesn't support dot notation
-      store.delete(`accounts.${accountId}.${key}`);
+      store.delete(`accounts.${steamId}.${key}`);
     } else {
-      store.set(`accounts.${accountId}.${key}`, value);
+      store.set(`accounts.${steamId}.${key}`, value);
     }
   });
 
