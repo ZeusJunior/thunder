@@ -127,7 +127,7 @@ export async function addAuthenticator({
 
   const details = { accountName, password, authCode, disableMobile: false };
 
-  const community = new SteamCommunity({ request: requestDefault as any });
+  const community = new SteamCommunity();
 
   return new Promise((resolve, reject) => {
     community.login(details, (err, _sessionID, cookies) => {
